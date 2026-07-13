@@ -9,13 +9,13 @@ export default function ExportImport() {
   const showToast = useToast();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Export / Import</h1>
         <p className="mt-1 text-sm text-ink-dim">Move prompts in and out of the toolkit.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
         <Card className="p-6">
           <h2 className="font-display text-sm font-semibold text-ink">Import Prompts</h2>
           <div
