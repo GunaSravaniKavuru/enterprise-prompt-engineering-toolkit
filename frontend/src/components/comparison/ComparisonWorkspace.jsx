@@ -1,543 +1,245 @@
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Card from "../common/Card";
 import Button from "../common/Button";
 import Icon from "../common/Icon";
-import { QualityRadarChart } from "../charts/Charts";
+import Badge from "../common/Badge";
 
-const comparisonData = [
+const promptCatalog = [
   {
-    id: 1,
-    model: "Claude Sonnet 5",
-    provider: "Anthropic",
-    quality: 95,
-    reasoning: 94,
-    accuracy: 92,
-    creativity: 88,
-    safety: 96,
-    completeness: 91,
-    latencyMs: 1800,
-    latencyLabel: "1.8s",
-    tokens: 2100,
-    cost: 0.018,
-    costLabel: "$0.018",
-    rank: 1,
-    winner: true,
-    strengths: ["Strong instruction following", "Low hallucination risk", "Excellent structure"],
-    weaknesses: ["Slightly slower", "Higher cost than the fastest option"],
-    fullResponse:
-      "Claude delivered a structured answer with clear reasoning, relevant caveats, and a concise recommendation. It is especially strong when the task requires nuance and high confidence.",
-    reasoningSummary:
-      "Best fit for complex enterprise prompts where clarity, caution, and professional tone matter most.",
+    id: "churn",
+    title: "Customer Churn Diagnosis",
+    description: "Assess churn-risk signals and propose a concise action plan.",
+    variables: ["accountId", "segment", "lastInteractionDate", "productUsageTrend"],
   },
   {
-    id: 2,
-    model: "GPT-5",
+    id: "support",
+    title: "Support Triage Assistant",
+    description: "Prioritize urgent issues and draft a customer-ready response.",
+    variables: ["ticketId", "priority", "customerTone", "timeline"],
+  },
+  {
+    id: "launch",
+    title: "Product Launch Brief",
+    description: "Summarize the launch narrative and define the key messaging.",
+    variables: ["launchDate", "audience", "valueProp", "riskFlags"],
+  },
+];
+
+const modelCatalog = [
+  {
+    id: "gpt-4o",
+    name: "GPT-4o",
     provider: "OpenAI",
-    quality: 91,
-    reasoning: 91,
-    accuracy: 90,
-    creativity: 84,
-    safety: 92,
-    completeness: 90,
-    latencyMs: 1300,
-    latencyLabel: "1.3s",
+    quality: 92,
+    latency: 1.3,
     tokens: 1800,
     cost: 0.021,
-    costLabel: "$0.021",
-    rank: 2,
-    winner: false,
-    strengths: ["Fast execution", "Strong technical depth", "Reliable coding output"],
-    weaknesses: ["Less nuanced for policy-heavy prompts"],
-    fullResponse:
-      "GPT-5 returned a concise and technically strong answer with quick turnaround. It is highly effective for coding, technical analysis, and rapid iteration.",
-    reasoningSummary:
-      "A strong all-rounder when speed and technical precision are more important than softer reasoning.",
+    response: "GPT-4o produced a crisp, structured response with very strong technical depth and fast turnaround.",
+    output: "## Recommendation\n- Prioritize the highest-risk segment first.\n- Keep the tone calm and action-oriented.\n\n```ts\nconst nextAction = 'Escalate to the retention pod';\n```",
   },
   {
-    id: 3,
-    model: "Gemini 2.5 Pro",
+    id: "claude-3.7",
+    name: "Claude 3.7",
+    provider: "Anthropic",
+    quality: 95,
+    latency: 1.8,
+    tokens: 2100,
+    cost: 0.018,
+    response: "Claude 3.7 was the most balanced option, combining careful reasoning with a polished executive-ready tone.",
+    output: "## Summary\n- The evidence strongly supports proactive outreach.\n- The recommended messaging should be concise and confident.\n\n```md\n**Key move:** sync customer success and product for a joint follow-up.\n```",
+  },
+  {
+    id: "gemini-2.0",
+    name: "Gemini 2.0",
     provider: "Google",
-    quality: 87,
-    reasoning: 86,
-    accuracy: 88,
-    creativity: 93,
-    safety: 89,
-    completeness: 85,
-    latencyMs: 1100,
-    latencyLabel: "1.1s",
+    quality: 88,
+    latency: 1.1,
     tokens: 2600,
     cost: 0.016,
-    costLabel: "$0.016",
-    rank: 3,
-    winner: false,
-    strengths: ["Creative voice", "Fastest latency", "Good contextual synthesis"],
-    weaknesses: ["Less strict structure", "Slightly higher risk on precision tasks"],
-    fullResponse:
-      "Gemini produced a vivid and conversational answer with good context synthesis. It shines in creative or broad brainstorming scenarios, though it is less consistent for strict enterprise tasks.",
-    reasoningSummary:
-      "Best for rapid, imaginative workflows where the main goal is breadth and style rather than strict rigor.",
+    response: "Gemini 2.0 delivered a fast, creative response with strong contextual synthesis but slightly looser structure.",
+    output: "## Snapshot\n- Excellent for broad ideation and brainstorming.\n- Less precise when strict formatting matters.\n\n```json\n{\n  \"focus\": \"clarity\"\n}\n```",
   },
 ];
 
-const promptData = {
-  title: "Customer Churn Diagnosis Agent",
-  content:
-    "Analyze a churn-risk signal, identify likely causes, provide a short action plan, and explain the confidence level in a concise business-friendly format.",
-  models: ["Claude Sonnet 5", "GPT-5", "Gemini 2.5 Pro"],
+const toneMap = {
+  violet: "border-violet-400/25 bg-violet-500/10 text-violet-200",
+  cyan: "border-cyan-400/25 bg-cyan-500/15 text-cyan-200",
+  emerald: "border-emerald-400/25 bg-emerald-500/10 text-emerald-200",
+  amber: "border-amber-400/25 bg-amber-500/10 text-amber-200",
 };
-
-const summaryCards = [
-  { label: "Recommended Model", model: "Claude Sonnet 5", score: "95/100", explanation: "Best overall balance of quality, safety, and clarity.", badge: "Recommended", tone: "violet", icon: "sparkle" },
-  { label: "Fastest Model", model: "Gemini 2.5 Pro", score: "1.1s", explanation: "Lowest latency for quick-turn workflows.", badge: "Fast", tone: "cyan", icon: "play" },
-  { label: "Cheapest Model", model: "Gemini 2.5 Pro", score: "$0.016", explanation: "Most cost-efficient option for high-volume runs.", badge: "Cost-effective", tone: "emerald", icon: "chart" },
-  { label: "Highest Quality", model: "Claude Sonnet 5", score: "95/100", explanation: "Best reasoning and policy-aware answer quality.", badge: "Top-tier", tone: "amber", icon: "gauge" },
-];
-
-const recommendation = {
-  model: "Claude Sonnet 5",
-  confidence: 92,
-  why: "It offers the best balance of reasoning depth, safety, and business-ready clarity for a demanding prompt.",
-  bestUseCases: ["Enterprise analysis", "Prompt engineering", "Document review"],
-  tradeoffs: ["Slightly slower than Gemini", "Higher cost than the cheapest option"],
-};
-
-const taskRecommendations = [
-  { task: "Coding", model: "GPT-5", reason: "Fastest and strongest technical execution." },
-  { task: "Creative Writing", model: "Gemini 2.5 Pro", reason: "Most expressive and stylistically rich output." },
-  { task: "Summarization", model: "Claude Sonnet 5", reason: "Excellent clarity and polished compression." },
-  { task: "Reasoning", model: "Claude Sonnet 5", reason: "Best depth and consistency for multi-step logic." },
-  { task: "Translation", model: "GPT-5", reason: "Reliable structure for multilingual work." },
-  { task: "Research", model: "GPT-5", reason: "Quick synthesis with strong analytical flow." },
-  { task: "Customer Support", model: "Claude Sonnet 5", reason: "Balanced empathy and policy-aware response quality." },
-  { task: "RAG", model: "Claude Sonnet 5", reason: "Strong grounding and evidence-aware summarization." },
-];
-
-const exportOptions = ["PDF", "Markdown", "JSON", "CSV"];
 
 function ToneBadge({ tone = "violet", children }) {
-  const tones = {
-    violet: "border-violet-400/25 bg-violet-500/15 text-violet-200",
-    cyan: "border-cyan-400/25 bg-cyan-500/15 text-cyan-200",
-    emerald: "border-emerald-400/25 bg-emerald-500/15 text-emerald-200",
-    amber: "border-amber-400/25 bg-amber-500/15 text-amber-200",
-  };
-  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${tones[tone] || tones.violet}`}>{children}</span>;
+  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${toneMap[tone] || toneMap.violet}`}>{children}</span>;
 }
 
-function ScoreBar({ value, color }) {
-  return (
-    <div className="h-2 overflow-hidden rounded-full bg-white/10">
-      <div className="h-full rounded-full transition-all" style={{ width: `${value}%`, background: color }} />
-    </div>
-  );
+function renderMarkdown(markdown) {
+  const escaped = markdown.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const html = escaped
+    .replace(/```([\w-]*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre class="mt-3 overflow-x-auto rounded-xl border border-white/10 bg-slate-950/90 p-3 text-sm text-slate-100"><code class="language-${lang || "text"}">${code.trim()}</code></pre>`)
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^- (.*)$/gm, "<li>$1</li>")
+    .replace(/^(#{1,3})\s+(.*)$/gm, "<h$1 class=\"mt-3 text-sm font-semibold text-ink\">$2</h$1>")
+    .replace(/\n{2,}/g, "</p><p class=\"mt-2 text-sm leading-7 text-ink-dim\">")
+    .replace(/\n/g, "<br />");
+
+  return { __html: `<p class="text-sm leading-7 text-ink-dim">${html.replace(/<p>|<\/p>/g, "")}</p>` };
 }
 
-function PromptHeader() {
+function StickyHeader({ title, description, onCompare, onClear, hasResults }) {
   return (
-    <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="rounded-[28px] border border-[var(--color-border-hi)] bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.16),_transparent_30%),rgba(16,18,28,0.95)] p-6 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.85)] lg:p-7">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <motion.header
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="sticky top-0 z-20 rounded-[28px] border border-[var(--color-border-hi)] bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.16),_transparent_30%),rgba(10,12,20,0.92)] px-4 py-4 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.85)] backdrop-blur xl:px-6"
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-violet-200">
-            <Icon name="gauge" size={13} /> Model selection workspace
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-violet-200">
+            <Icon name="gauge" size={13} /> Multi model comparison
           </div>
-          <h1 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">Multi-model comparison</h1>
-          <p className="mt-3 text-sm leading-7 text-ink-dim sm:text-[15px]">
-            Choose the right model for a prompt with confidence, using a focused view of quality, latency, price, and reasoning.
-          </p>
+          <h1 className="mt-3 font-display text-3xl font-semibold text-ink">{title}</h1>
+          <p className="mt-2 text-sm leading-7 text-ink-dim">{description}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" icon="play">Compare</Button>
-          <Button variant="secondary" size="sm" icon="check">Edit Prompt</Button>
-          <Button variant="secondary" size="sm" icon="download">Export</Button>
+          <Button size="sm" icon="play" onClick={onCompare}>Compare</Button>
+          <Button variant="secondary" size="sm" icon="x" onClick={onClear} disabled={!hasResults}>Clear Results</Button>
         </div>
       </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="p-4">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Prompt under evaluation</p>
-          <h2 className="mt-2 font-display text-lg font-semibold text-ink">{promptData.title}</h2>
-          <p className="mt-2 text-sm leading-7 text-ink-dim">{promptData.content}</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Selected models</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {promptData.models.map((model) => (
-              <span key={model} className="rounded-full border border-[var(--color-border-soft)] bg-white/[0.03] px-3 py-1.5 text-sm text-ink-dim">{model}</span>
-            ))}
-          </div>
-          <div className="mt-4 flex items-center gap-2 text-sm text-ink-dim">
-            <Icon name="check" size={15} className="text-emerald-300" />
-            All models are ready for side-by-side evaluation.
-          </div>
-        </Card>
-      </div>
-    </motion.section>
+    </motion.header>
   );
 }
 
-function ExecutiveSummary() {
-  return (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {summaryCards.map((item, index) => (
-        <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}>
-          <Card className="h-full p-4 transition-all duration-200 hover:-translate-y-1 hover:border-violet-400/25">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-violet-200">
-                <Icon name={item.icon} size={18} />
-              </div>
-              <ToneBadge tone={item.tone}>{item.badge}</ToneBadge>
-            </div>
-            <p className="mt-4 text-[11px] uppercase tracking-[0.24em] text-ink-faint">{item.label}</p>
-            <p className="mt-2 text-sm font-semibold text-ink">{item.model}</p>
-            <p className="mt-3 text-sm leading-6 text-ink-dim">{item.explanation}</p>
-            <p className="mt-3 font-display text-lg font-semibold text-ink">{item.score}</p>
-          </Card>
-        </motion.div>
-      ))}
-    </section>
-  );
-}
-
-function RecommendationCard() {
-  return (
-    <Card hi className="p-5 lg:p-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-violet-200">
-            <Icon name="sparkle" size={13} /> AI recommendation
-          </div>
-          <h2 className="mt-4 font-display text-xl font-semibold text-ink">{recommendation.model} is the best fit</h2>
-          <p className="mt-3 text-sm leading-7 text-ink-dim">{recommendation.why}</p>
-        </div>
-        <div className="rounded-2xl border border-violet-400/20 bg-violet-500/10 px-4 py-3 text-center">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-violet-200">Confidence</p>
-          <p className="mt-2 font-display text-3xl font-semibold text-ink">{recommendation.confidence}%</p>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Best use cases</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {recommendation.bestUseCases.map((item) => (
-              <span key={item} className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-200">{item}</span>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Trade-offs</p>
-          <ul className="mt-3 space-y-2 text-sm text-ink-dim">
-            {recommendation.tradeoffs.map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-300" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function ComparisonTable() {
-  const [providerFilter, setProviderFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("quality");
-  const [expandedId, setExpandedId] = useState(1);
-
-  const visibleRows = useMemo(() => {
-    let rows = providerFilter === "All" ? comparisonData : comparisonData.filter((item) => item.provider === providerFilter);
-    rows = [...rows].sort((a, b) => {
-      if (sortBy === "latency") return a.latencyMs - b.latencyMs;
-      if (sortBy === "cost") return a.cost - b.cost;
-      if (sortBy === "tokens") return b.tokens - a.tokens;
-      return b.quality - a.quality;
-    });
-    return rows;
-  }, [providerFilter, sortBy]);
+function ComparisonConfigCard({ prompt, setPrompt, selectedModels, toggleModel, variables, setVariable, onRun, promptOptions }) {
+  const selectedPrompt = promptCatalog.find((item) => item.id === prompt) || promptCatalog[0];
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-[var(--color-border-soft)] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <Card className="p-4 lg:p-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Compare models</h2>
-          <p className="mt-1 text-sm text-ink-dim">Filter by provider and sort by the signal that matters most.</p>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Configuration</p>
+          <h2 className="mt-2 font-display text-lg font-semibold text-ink">Run a focused evaluation</h2>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <label className="text-sm text-ink-dim">
-            <span className="sr-only">Filter by provider</span>
-            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)} className="rounded-xl border border-[var(--color-border-soft)] bg-[#12141f] px-3 py-2 text-sm text-ink focus-ring">
-              <option value="All">All providers</option>
-              <option value="Anthropic">Anthropic</option>
-              <option value="OpenAI">OpenAI</option>
-              <option value="Google">Google</option>
-            </select>
-          </label>
-          <label className="text-sm text-ink-dim">
-            <span className="sr-only">Sort models</span>
-            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="rounded-xl border border-[var(--color-border-soft)] bg-[#12141f] px-3 py-2 text-sm text-ink focus-ring">
-              <option value="quality">Sort by quality</option>
-              <option value="latency">Sort by latency</option>
-              <option value="cost">Sort by cost</option>
-              <option value="tokens">Sort by tokens</option>
-            </select>
-          </label>
-        </div>
+        <Badge tone="cyan">Live</Badge>
       </div>
 
-      {visibleRows.length === 0 ? (
-        <div className="p-8 text-center text-sm text-ink-dim">No models match the current filter.</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-[860px] w-full text-left text-sm">
-            <thead className="bg-white/[0.02] text-xs uppercase tracking-[0.24em] text-ink-faint">
-              <tr>
-                <th className="px-5 py-3.5 font-medium">Model</th>
-                <th className="px-5 py-3.5 font-medium">Quality</th>
-                <th className="px-5 py-3.5 font-medium">Latency</th>
-                <th className="px-5 py-3.5 font-medium">Cost</th>
-                <th className="px-5 py-3.5 font-medium">Tokens</th>
-                <th className="px-5 py-3.5 font-medium">Rank</th>
-                <th className="px-5 py-3.5 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleRows.map((row) => (
-                <>
-                  <tr key={row.id} className="border-t border-[var(--color-border-soft)] text-ink-dim hover:bg-white/[0.025]">
-                    <td className="px-5 py-4">
-                      <div className="font-medium text-ink">{row.model}</div>
-                      <div className="mt-1 text-xs text-ink-faint">{row.provider}</div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs text-ink-dim">
-                          <span>{row.quality}%</span>
-                          <ToneBadge tone={row.winner ? "emerald" : "cyan"}>{row.winner ? "Best" : "Strong"}</ToneBadge>
-                        </div>
-                        <ScoreBar value={row.quality} color={row.winner ? "#8b5cf6" : "#22d3ee"} />
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">{row.latencyLabel}</td>
-                    <td className="px-5 py-4">{row.costLabel}</td>
-                    <td className="px-5 py-4">{row.tokens.toLocaleString()}</td>
-                    <td className="px-5 py-4">#{row.rank}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => setExpandedId(row.id)}>View Response</Button>
-                        <Button variant="ghost" size="sm" onClick={() => setExpandedId(row.id)}>Expand</Button>
-                      </div>
-                    </td>
-                  </tr>
-                  {expandedId === row.id && (
-                    <tr key={`${row.id}-detail`}>
-                      <td colSpan={7} className="bg-black/15 px-5 py-4">
-                        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold text-ink">{row.model} response</p>
-                              <p className="mt-1 text-sm leading-7 text-ink-dim">{row.fullResponse}</p>
-                            </div>
-                            <ToneBadge tone={row.winner ? "emerald" : "cyan"}>{row.winner ? "Recommended" : "Alternative"}</ToneBadge>
-                          </div>
-                          <div className="mt-4 grid gap-4 md:grid-cols-2">
-                            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
-                              <p className="text-sm font-semibold text-ink">Strengths</p>
-                              <ul className="mt-2 space-y-2 text-sm text-ink-dim">
-                                {row.strengths.map((item) => <li key={item} className="flex items-start gap-2"><span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />{item}</li>)}
-                              </ul>
-                            </div>
-                            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
-                              <p className="text-sm font-semibold text-ink">Weaknesses</p>
-                              <ul className="mt-2 space-y-2 text-sm text-ink-dim">
-                                {row.weaknesses.map((item) => <li key={item} className="flex items-start gap-2"><span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-300" />{item}</li>)}
-                              </ul>
-                            </div>
-                          </div>
-                          <div className="mt-4 rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
-                            <p className="text-sm font-semibold text-ink">Reasoning summary</p>
-                            <p className="mt-2 text-sm leading-7 text-ink-dim">{row.reasoningSummary}</p>
-                          </div>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <Button variant="secondary" size="sm" icon="copy">Copy</Button>
-                            <Button variant="secondary" size="sm" icon="download">Download</Button>
-                            <Button variant="secondary" size="sm" icon="x">Collapse</Button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Card>
-  );
-}
+      <div className="mt-5 space-y-4">
+        <label className="block text-sm text-ink-dim">
+          <span className="mb-2 block font-medium text-ink">Prompt selector</span>
+          <select value={prompt} onChange={(event) => setPrompt(event.target.value)} className="w-full rounded-2xl border border-[var(--color-border-soft)] bg-[#11141c] px-3 py-2.5 text-sm text-ink outline-none focus-ring">
+            {promptOptions.map((item) => (
+              <option key={item.id} value={item.id}>{item.title}</option>
+            ))}
+          </select>
+        </label>
 
-function AIJudgePanel() {
-  return (
-    <Card hi className="p-5 lg:p-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-emerald-200">
-            <Icon name="gauge" size={13} /> AI judge analysis
+        <div>
+          <p className="mb-2 font-medium text-ink">Model selection</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {modelCatalog.map((model) => {
+              const checked = selectedModels.includes(model.id);
+              return (
+                <label key={model.id} className={`flex cursor-pointer items-center justify-between rounded-2xl border px-3 py-3 text-sm transition ${checked ? "border-violet-400/25 bg-violet-500/10 text-ink" : "border-[var(--color-border-soft)] bg-white/[0.03] text-ink-dim"}`}>
+                  <span>{model.name}</span>
+                  <input type="checkbox" checked={checked} onChange={() => toggleModel(model.id)} className="h-4 w-4 rounded border-white/15 bg-transparent accent-violet-400" />
+                </label>
+              );
+            })}
           </div>
-          <h2 className="mt-4 font-display text-xl font-semibold text-ink">Why Claude Sonnet 5 wins</h2>
-          <p className="mt-3 text-sm leading-7 text-ink-dim">
-            The winning model is not just the highest-scoring one. It is the most reliable for this prompt because it combines strong reasoning, explicit caution, and clear business output.
-          </p>
         </div>
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-center">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-emerald-200">Confidence</p>
-          <p className="mt-2 font-display text-3xl font-semibold text-ink">92%</p>
-        </div>
-      </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Strengths</p>
-          <ul className="mt-3 space-y-2 text-sm text-ink-dim">
-            <li>Excellent instruction following</li>
-            <li>Low hallucination risk</li>
-            <li>High clarity for product and operations teams</li>
-          </ul>
+        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium text-ink">Prompt variables</p>
+            <Badge tone="emerald">Dynamic</Badge>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {selectedPrompt.variables.map((variable) => (
+              <label key={variable} className="text-sm text-ink-dim">
+                <span className="mb-1.5 block text-xs uppercase tracking-[0.24em] text-ink-faint">{variable}</span>
+                <input value={variables[variable] || ""} onChange={(event) => setVariable(variable, event.target.value)} className="w-full rounded-xl border border-[var(--color-border-soft)] bg-[#12141f] px-3 py-2 text-sm text-ink outline-none focus-ring" placeholder={`Enter ${variable}`} />
+              </label>
+            ))}
+          </div>
         </div>
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Weaknesses</p>
-          <ul className="mt-3 space-y-2 text-sm text-ink-dim">
-            <li>Less creative than Gemini</li>
-            <li>Lower speed than the fastest option</li>
-          </ul>
-        </div>
-      </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Recommended for</p>
-          <p className="mt-2 text-sm text-ink-dim">High-stakes business decisions, enterprise policy review, and prompt-quality-sensitive workflows.</p>
-        </div>
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-          <p className="text-sm font-semibold text-ink">Not recommended for</p>
-          <p className="mt-2 text-sm text-ink-dim">Ultra-low-latency content generation where raw speed matters more than rigor.</p>
-        </div>
+        <Button className="w-full" icon="play" onClick={onRun}>Run comparison</Button>
       </div>
     </Card>
   );
 }
 
-function AnalyticsSection() {
-  const latencyData = [
-    { name: "Claude", latency: 1.8 },
-    { name: "GPT-5", latency: 1.3 },
-    { name: "Gemini", latency: 1.1 },
-  ];
-
-  const costData = [
-    { name: "Claude", cost: 0.018 },
-    { name: "GPT-5", cost: 0.021 },
-    { name: "Gemini", cost: 0.016 },
-  ];
-
-  const tokenData = [
-    { name: "Claude", tokens: 2100 },
-    { name: "GPT-5", tokens: 1800 },
-    { name: "Gemini", tokens: 2600 },
-  ];
-
-  const radarData = [
-    { metric: "Reasoning", Claude: 94, GPT: 91, Gemini: 86 },
-    { metric: "Accuracy", Claude: 92, GPT: 90, Gemini: 88 },
-    { metric: "Creativity", Claude: 88, GPT: 84, Gemini: 93 },
-    { metric: "Safety", Claude: 96, GPT: 92, Gemini: 89 },
-    { metric: "Completeness", Claude: 91, GPT: 90, Gemini: 85 },
-  ];
-
+function LoadingState() {
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-      <Card className="p-5">
-        <div className="mb-4">
-          <h2 className="font-display text-lg font-semibold text-ink">Performance analytics</h2>
-          <p className="mt-1 text-sm text-ink-dim">The signals that matter most when choosing a model.</p>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-            <p className="text-sm font-semibold text-ink">Latency</p>
-            <div className="mt-3 h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={latencyData}>
-                  <CartesianGrid stroke="rgba(148,156,199,0.08)" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="latency" radius={[8, 8, 0, 0]} fill="#8b5cf6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
+        <div className="h-2 w-28 rounded-full bg-white/10" />
+        <div className="mt-4 h-3 w-full rounded-full bg-white/10" />
+        <div className="mt-2 h-3 w-3/4 rounded-full bg-white/10" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="rounded-[24px] border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
+            <div className="h-3 w-20 rounded-full bg-white/10" />
+            <div className="mt-4 h-20 rounded-2xl bg-white/10" />
+            <div className="mt-3 h-3 w-full rounded-full bg-white/10" />
+            <div className="mt-2 h-3 w-3/4 rounded-full bg-white/10" />
           </div>
-          <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-            <p className="text-sm font-semibold text-ink">Cost</p>
-            <div className="mt-3 h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={costData}>
-                  <CartesianGrid stroke="rgba(148,156,199,0.08)" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="cost" radius={[8, 8, 0, 0]} fill="#22d3ee" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4 lg:col-span-2">
-            <p className="text-sm font-semibold text-ink">Token usage</p>
-            <div className="mt-3 h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tokenData}>
-                  <CartesianGrid stroke="rgba(148,156,199,0.08)" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#6a6f85" }} axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="tokens" radius={[8, 8, 0, 0]} fill="#f5a623" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-5">
-        <div className="mb-4">
-          <h2 className="font-display text-lg font-semibold text-ink">Capability radar</h2>
-          <p className="mt-1 text-sm text-ink-dim">Reasoning, accuracy, creativity, safety, and completeness.</p>
-        </div>
-        <div className="h-[360px]">
-          <QualityRadarChart data={radarData} />
-        </div>
-      </Card>
-    </div>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
-function UseCaseRecommendations() {
+function EmptyState({ onRun }) {
   return (
-    <Card className="p-5 lg:p-6">
-      <div className="mb-4">
-        <h2 className="font-display text-lg font-semibold text-ink">Best model by task</h2>
-        <p className="mt-1 text-sm text-ink-dim">Pick the model that matches the job, not just the highest score.</p>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-[28px] border border-dashed border-[var(--color-border-soft)] bg-white/[0.025] p-8 text-center shadow-[0_18px_60px_-24px_rgba(0,0,0,0.65)]">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/10 text-violet-200">
+        <Icon name="sparkle" size={24} />
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {taskRecommendations.map((item) => (
-          <div key={item.task} className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-ink">{item.task}</p>
-              <ToneBadge tone="violet">{item.model}</ToneBadge>
+      <h2 className="mt-4 font-display text-xl font-semibold text-ink">No comparison has been run yet</h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-ink-dim">Select your prompt, choose the models you want to compare, and generate a focused side-by-side evaluation in seconds.</p>
+      <Button className="mt-5" icon="play" onClick={onRun}>Compare models</Button>
+    </motion.div>
+  );
+}
+
+function ComparisonSummary({ results }) {
+  if (!results.length) return null;
+
+  const fastest = [...results].sort((a, b) => a.latency - b.latency)[0];
+  const cheapest = [...results].sort((a, b) => a.cost - b.cost)[0];
+  const highestQuality = [...results].sort((a, b) => b.quality - a.quality)[0];
+  const longest = [...results].sort((a, b) => b.outputLength - a.outputLength)[0];
+  const shortest = [...results].sort((a, b) => a.outputLength - b.outputLength)[0];
+  const bestOverall = [...results].sort((a, b) => b.weightedScore - a.weightedScore)[0];
+
+  const items = [
+    { title: "Fastest", value: fastest.name, detail: `${fastest.latency.toFixed(1)}s`, tone: "cyan" },
+    { title: "Lowest cost", value: cheapest.name, detail: `$${cheapest.cost.toFixed(3)}`, tone: "emerald" },
+    { title: "Highest quality", value: highestQuality.name, detail: `${highestQuality.quality}/100`, tone: "violet" },
+    { title: "Longest response", value: longest.name, detail: `${longest.outputLength} chars`, tone: "amber" },
+    { title: "Shortest response", value: shortest.name, detail: `${shortest.outputLength} chars`, tone: "amber" },
+    { title: "Best overall", value: bestOverall.name, detail: `${bestOverall.weightedScore}/100`, tone: "violet" },
+  ];
+
+  return (
+    <Card className="p-4 lg:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Summary</p>
+          <h2 className="mt-2 font-display text-lg font-semibold text-ink">At-a-glance comparison</h2>
+        </div>
+        <Badge tone="emerald">Premium readout</Badge>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <div key={item.title} className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-ink">{item.title}</p>
+              <ToneBadge tone={item.tone}>{item.detail}</ToneBadge>
             </div>
-            <p className="mt-3 text-sm leading-6 text-ink-dim">{item.reason}</p>
+            <p className="mt-2 text-sm text-ink-dim">{item.value}</p>
           </div>
         ))}
       </div>
@@ -545,35 +247,199 @@ function UseCaseRecommendations() {
   );
 }
 
-function ExportPanel() {
+function ComparisonResults({ results, onCopy, onDownload }) {
+  const gridClass = results.length <= 1 ? "grid-cols-1" : results.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3";
+
   return (
-    <Card className="p-5 lg:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className={`grid gap-4 ${gridClass}`}>
+      {results.map((result, index) => (
+        <motion.article key={result.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="flex h-full flex-col rounded-[24px] border border-[var(--color-border-soft)] bg-white/[0.03] p-4 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.65)]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-display text-lg font-semibold text-ink">{result.name}</h3>
+                <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>{result.provider}</Badge>
+              </div>
+              <p className="mt-2 text-sm leading-7 text-ink-dim">{result.response}</p>
+            </div>
+            <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>Score {result.quality}</Badge>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
+              <div className="flex items-center justify-between">
+                <span>Response time</span>
+                <span className="font-semibold text-ink">{result.latency.toFixed(1)}s</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span>Tokens</span>
+                <span className="font-semibold text-ink">{result.tokens.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
+              <div className="flex items-center justify-between">
+                <span>Estimated cost</span>
+                <span className="font-semibold text-ink">${result.cost.toFixed(3)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span>Length</span>
+                <span className="font-semibold text-ink">{result.outputLength} chars</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-[22px] border border-[var(--color-border-soft)] bg-slate-950/60 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium text-ink">Generated output</p>
+              <Badge tone="neutral">Markdown</Badge>
+            </div>
+            <div className="max-h-60 overflow-auto rounded-2xl border border-white/10 bg-slate-950/80 p-3" dangerouslySetInnerHTML={renderMarkdown(result.output)} />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" icon="copy" onClick={() => onCopy(result)}>Copy response</Button>
+            <Button variant="secondary" size="sm" icon="download" onClick={() => onDownload(result)}>Download response</Button>
+          </div>
+        </motion.article>
+      ))}
+    </div>
+  );
+}
+
+function ComparisonInsights({ results }) {
+  if (!results.length) return null;
+
+  const insights = [
+    `✓ ${results[0].name} produced the fastest response for this prompt.`,
+    `✓ ${results.find((item) => item.quality >= 93)?.name || results[0].name} delivered the highest quality score.`,
+    `✓ ${results.reduce((best, item) => (item.cost < best.cost ? item : best), results[0]).name} had the lowest estimated cost.`,
+    `✓ ${results.reduce((best, item) => (item.outputLength > best.outputLength ? item : best), results[0]).name} generated the longest explanation.`,
+  ];
+
+  return (
+    <Card className="p-4 lg:p-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Export comparison</h2>
-          <p className="mt-1 text-sm text-ink-dim">Share the recommendation with your team or save it for future review.</p>
+          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Insights</p>
+          <h2 className="mt-2 font-display text-lg font-semibold text-ink">Concise comparison notes</h2>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {exportOptions.map((option) => (
-            <Button key={option} variant="secondary" size="sm" icon="download">Export {option}</Button>
-          ))}
-        </div>
+        <Badge tone="cyan">Readable</Badge>
+      </div>
+      <div className="mt-4 space-y-2">
+        {insights.map((item) => (
+          <div key={item} className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 px-3 py-3 text-sm text-ink-dim">{item}</div>
+        ))}
       </div>
     </Card>
   );
 }
 
 export default function ComparisonWorkspace() {
+  const [prompt, setPrompt] = useState(promptCatalog[0].id);
+  const [selectedModels, setSelectedModels] = useState(["gpt-4o", "claude-3.7", "gemini-2.0"]);
+  const [variables, setVariables] = useState({
+    accountId: "AC-2048",
+    segment: "Enterprise",
+    lastInteractionDate: "2026-06-19",
+    productUsageTrend: "Steady decline",
+  });
+  const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    const timer = window.setTimeout(() => {
+      if (!active) return;
+      const nextResults = buildResults(selectedModels, prompt, variables);
+      setResults(nextResults);
+      setIsLoading(false);
+    }, 900);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [prompt, selectedModels, variables]);
+
+  const currentPrompt = useMemo(() => promptCatalog.find((item) => item.id === prompt) || promptCatalog[0], [prompt]);
+
+  const toggleModel = (modelId) => {
+    setSelectedModels((current) => (current.includes(modelId) ? current.filter((item) => item !== modelId) : [...current, modelId]));
+  };
+
+  const handleVariableChange = (key, value) => {
+    setVariables((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleRunComparison = () => {
+    setIsLoading(true);
+    window.setTimeout(() => {
+      setResults(buildResults(selectedModels, prompt, variables));
+      setIsLoading(false);
+    }, 700);
+  };
+
+  const handleClearResults = () => {
+    setSelectedModels([]);
+    setResults([]);
+  };
+
+  const handleCopy = async (result) => {
+    try {
+      await navigator.clipboard.writeText(result.output);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDownload = (result) => {
+    const blob = new Blob([result.output], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${result.name.toLowerCase().replace(/\s+/g, "-")}-response.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <PromptHeader />
-      <ExecutiveSummary />
-      <RecommendationCard />
-      <ComparisonTable />
-      <AIJudgePanel />
-      <AnalyticsSection />
-      <UseCaseRecommendations />
-      <ExportPanel />
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-2 sm:px-6 lg:px-8">
+      <StickyHeader title="Multi model comparison" description={`${currentPrompt.description} Choose the models that matter most for your task and review the outcomes side by side.`} onCompare={handleRunComparison} onClear={handleClearResults} hasResults={results.length > 0} />
+      <div className="flex flex-col gap-4">
+        <ComparisonConfigCard prompt={prompt} setPrompt={setPrompt} selectedModels={selectedModels} toggleModel={toggleModel} variables={variables} setVariable={handleVariableChange} onRun={handleRunComparison} promptOptions={promptCatalog} />
+        <ComparisonSummary results={results} />
+        {isLoading ? <LoadingState /> : results.length ? <ComparisonResults results={results} onCopy={handleCopy} onDownload={handleDownload} /> : <EmptyState onRun={handleRunComparison} />}
+      </div>
+      {results.length > 0 && <ComparisonInsights results={results} />}
     </div>
   );
+}
+
+function buildResults(selectedModels, prompt, variables) {
+  const promptDescription = promptCatalog.find((item) => item.id === prompt)?.title || "Prompt";
+
+  return selectedModels
+    .map((modelId) => {
+      const model = modelCatalog.find((item) => item.id === modelId);
+      if (!model) return null;
+
+      const outputLength = model.output.length;
+      const weightedScore = Math.round(model.quality * 0.7 + (100 - model.latency * 20) * 0.15 + (100 - model.cost * 900) * 0.15);
+
+      return {
+        ...model,
+        id: model.id,
+        name: model.name,
+        provider: model.provider,
+        quality: model.quality,
+        latency: model.latency,
+        tokens: model.tokens,
+        cost: model.cost,
+        output: `${model.output}\n\nPrompt: ${promptDescription}\nVariables: ${Object.entries(variables).map(([key, value]) => `${key}=${value}`).join(", ")}`,
+        outputLength,
+        weightedScore,
+      };
+    })
+    .filter(Boolean);
 }
