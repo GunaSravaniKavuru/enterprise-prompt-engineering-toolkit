@@ -19,7 +19,7 @@ const quickActions = [
 
 export default function Dashboard() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <Card className="relative overflow-hidden p-6 lg:p-8">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl" />
@@ -52,14 +52,14 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map((s, i) => (
           <StatCard key={s.label} {...s} index={i} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="p-5 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.35fr_0.65fr]">
+        <Card className="p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-sm font-semibold text-ink">AI Usage — Last 7 Days</h2>
             <span className="text-xs text-ink-faint">Prompts executed</span>
@@ -88,15 +88,15 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+        <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-sm font-semibold text-ink">Recent Prompts</h2>
             <Link to="/library" className="text-xs text-violet-300 hover:text-violet-200">
               View library →
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {recentPrompts.slice(0, 4).map((p, i) => (
               <PromptCard key={p.id} prompt={p} index={i} />
             ))}

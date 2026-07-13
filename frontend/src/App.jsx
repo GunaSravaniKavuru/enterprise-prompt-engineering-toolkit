@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import { ToastProvider } from "./components/common/Toast";
 
@@ -28,10 +28,13 @@ export default function App() {
             <Route path="/evaluator" element={<PromptEvaluator />} />
             <Route path="/comparison" element={<ModelComparison />} />
             <Route path="/versions" element={<VersionHistory />} />
+            <Route path="/version-history" element={<VersionHistory />} />
+            <Route path="/versionhistory" element={<VersionHistory />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/export-import" element={<ExportImport />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>

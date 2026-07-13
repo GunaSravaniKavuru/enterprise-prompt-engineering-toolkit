@@ -8,7 +8,7 @@ export default function PromptOptimizer() {
   const { original, optimized, summary, scoreBefore, scoreAfter } = optimizerExample;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Prompt Optimizer</h1>
@@ -35,7 +35,7 @@ export default function PromptOptimizer() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
         <Card className="p-5">
           <h2 className="font-display text-sm font-semibold text-ink">Original Prompt</h2>
           <p className="mt-3 rounded-xl bg-black/30 p-4 text-sm leading-relaxed text-ink-dim">{original}</p>

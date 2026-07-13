@@ -1,6 +1,7 @@
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
-  BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
+  BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, Radar,
 } from "recharts";
 
 const tooltipStyle = {
@@ -94,6 +95,22 @@ export function ResponseTimeBarChart({ data }) {
         <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(148,156,199,0.06)" }} />
         <Bar dataKey="ms" radius={[0, 8, 8, 0]} fill="#f5a623" />
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function QualityRadarChart({ data }) {
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <RadarChart data={data}>
+        <PolarGrid stroke="rgba(148,156,199,0.16)" />
+        <PolarAngleAxis dataKey="metric" tick={{ fill: "#9297ad", fontSize: 11 }} />
+        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+        <Tooltip contentStyle={tooltipStyle} />
+        <Radar name="Claude" dataKey="Claude" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.28} />
+        <Radar name="GPT" dataKey="GPT" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.18} />
+        <Radar name="Gemini" dataKey="Gemini" stroke="#f5a623" fill="#f5a623" fillOpacity={0.16} />
+      </RadarChart>
     </ResponsiveContainer>
   );
 }

@@ -22,7 +22,7 @@ export default function PromptCard({ prompt, index = 0, compact = false }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
     >
-      <Card className="group flex h-full flex-col p-5 transition-colors hover:border-[var(--color-border-hi)]">
+      <Card className="group flex h-full min-h-[220px] flex-col p-5 transition-colors hover:border-[var(--color-border-hi)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Badge tone={categoryTone[prompt.category] || "neutral"}>{prompt.category}</Badge>
