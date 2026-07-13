@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-base: #0a0c14;
+  --color-base-raised: #0f1220;
+  --color-surface: #12141f;
+  --color-surface-hi: #171a29;
+  --color-border-soft: rgba(148, 156, 199, 0.12);
+  --color-border-hi: rgba(148, 156, 199, 0.22);
+
+  --color-ink: #e9eaf2;
+  --color-ink-dim: #9297ad;
+  --color-ink-faint: #6a6f85;
+
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #a78bfa;
+  --color-cyan: #22d3ee;
+  --color-amber: #f5a623;
+  --color-rose: #fb7185;
+  --color-emerald: #34d399;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 156, 199, 0.18);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 156, 199, 0.3);
+}
+
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 15% 0%, rgba(139, 92, 246, 0.16), transparent 60%),
+    radial-gradient(50% 35% at 100% 20%, rgba(34, 211, 238, 0.10), transparent 60%),
+    radial-gradient(40% 30% at 50% 100%, rgba(245, 166, 35, 0.06), transparent 60%);
+}
+
+.glass {
+  background: rgba(23, 26, 41, 0.55);
+  border: 1px solid var(--color-border-soft);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.glass-hi {
+  background: rgba(23, 26, 41, 0.75);
+  border: 1px solid var(--color-border-hi);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, var(--color-violet-soft), var(--color-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-violet-soft);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
