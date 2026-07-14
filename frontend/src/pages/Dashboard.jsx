@@ -48,6 +48,7 @@ function HeroIllustration() {
 }
 
 export default function Dashboard() {
+  const userName = localStorage.getItem("userName") || "Guest";
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6 lg:px-8">
       <section>
@@ -57,7 +58,7 @@ export default function Dashboard() {
             <div className="absolute -left-20 -bottom-16 h-52 w-52 rounded-full bg-cyan-400/10 blur-3xl" />
             <div className="relative grid gap-6 lg:grid-cols-[1.45fr_1fr] lg:items-center">
               <div className="space-y-6">
-                <Badge tone="cyan"> Welcome, Asha!</Badge>
+                <Badge tone="cyan">Welcome, {userName}!</Badge>
                 <div className="space-y-3">
                   <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Welcome back</p>
                   <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">

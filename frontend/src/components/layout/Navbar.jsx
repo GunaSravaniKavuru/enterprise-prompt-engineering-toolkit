@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "../common/Icon";
 import { currentUser, notifications } from "../../data/dummyData";
+const userName = localStorage.getItem("userName") || "Guest";
 
 export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
   const [notifOpen, setNotifOpen] = useState(false);
@@ -17,14 +18,8 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
         <Icon name="menu" size={20} />
       </button>
 
-      <div className="ml-auto flex items-center gap-2">
-        <button
-          onClick={onToggleTheme}
-          className="rounded-lg p-2.5 text-ink-dim hover:text-ink hover:bg-white/5 focus-ring"
-          aria-label="Toggle theme"
-        >
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
-        </button>
+      <div className="ml-auto flex items-center gap-2"> 
+        
 
         <div className="relative">
           <button
@@ -68,10 +63,10 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
             className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-white/5 focus-ring"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-semibold text-black">
-              {currentUser.avatarInitials}
-            </div>
+              {userName.charAt(0).toUpperCase()}
+            </div>ss
             <div className="hidden text-left leading-tight md:block">
-              <p className="text-xs font-medium text-ink">{currentUser.name}</p>
+              <p className="text-xs font-medium text-ink">{userName}</p>
               <p className="text-[10px] text-ink-faint">{currentUser.role}</p>
             </div>
             <Icon name="chevronDown" size={14} className="hidden text-ink-faint md:block" />
