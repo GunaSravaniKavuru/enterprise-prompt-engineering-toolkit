@@ -1,132 +1,223 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
-import StatCard from "../components/common/StatCard";
-import QualityRing from "../components/common/QualityRing";
-import PromptCard from "../components/prompt/PromptCard";
-import { UsageAreaChart, ScorePieChart } from "../components/charts/Charts";
-import {
-  statCards, recentPrompts, recentActivity, usageSeries, scoreDistribution, currentUser,
-} from "../data/dummyData";
+import Badge from "../components/common/Badge";
+import Icon from "../components/common/Icon";
+import { recentPrompts, recentActivity } from "../data/dummyData";
+import heroAi from "../assets/hero-ai.svg.svg";
 
 const quickActions = [
   { label: "New Prompt", icon: "plus", to: "/builder" },
-  { label: "Run in Playground", icon: "play", to: "/playground" },
-  { label: "Optimize a Prompt", icon: "sparkle", to: "/optimizer" },
-  { label: "Compare Models", icon: "columns", to: "/comparison" },
+  { label: "Prompt Library", icon: "book", to: "/library" },
+  { label: "Playground", icon: "play", to: "/playground" },
 ];
+
+const overviewCards = [
+  { label: "Total Prompts", value: "1,284", description: "All prompts in your workspace", icon: "plus" },
+  { label: "Average Prompt Quality", value: "87.3", description: "Across all prompts", icon: "sparkle" },
+  { label: "Pending Evaluations", value: "2", description: "Ready for review and scoring", icon: "gauge" },
+  { label: "Recent Updates", value: "6", description: "Edited or refined this week", icon: "clock" },
+];
+
+const activityMeta = {
+  optimized: { icon: "sparkle", tone: "violet" },
+  created: { icon: "plus", tone: "cyan" },
+  flagged: { icon: "check", tone: "amber" },
+  compared: { icon: "columns", tone: "emerald" },
+  restored: { icon: "restore", tone: "rose" },
+};
+
+function getPromptStatus(score) {
+  if (score >= 90) return { label: "Optimized", tone: "emerald" };
+  if (score >= 75) return { label: "Evaluated", tone: "violet" };
+  return { label: "Needs Review", tone: "amber" };
+}
+
+function HeroIllustration() {
+  return (
+    <div className="flex items-center justify-center p-2">
+      <img
+        src={heroAi}
+        alt="Hero illustration"
+        className="w-[400px] max-w-[420px] h-auto object-contain"
+        style={{ width: "min(42vw, 420px)" }}
+      />
+    </div>
+  );
+}
 
 export default function Dashboard() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <Card className="relative overflow-hidden p-6 lg:p-8">
-          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl" />
-          <div className="absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
-          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-                Welcome back, {currentUser.name.split(" ")[0]}
-              </p>
-              <h1 className="mt-2 font-display text-2xl font-semibold text-ink lg:text-3xl">
-                Your prompt engine is running at <span className="text-gradient">87.3</span> average quality
-              </h1>
-              <p className="mt-2 max-w-xl text-sm text-ink-dim">
-                16 active projects, 1,284 prompts under management. Three prompts need attention this week.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {quickActions.map((a) => (
-                  <Link key={a.label} to={a.to}>
-                    <Button variant={a.label === "New Prompt" ? "primary" : "secondary"} size="sm" icon={a.icon}>
-                      {a.label}
-                    </Button>
-                  </Link>
-                ))}
+    <div className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6 lg:px-8">
+      <section>
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+          <Card className="relative overflow-hidden border border-white/10 bg-slate-950/75 p-6 shadow-[0_24px_80px_-36px_rgba(15,23,42,0.9)] sm:p-8">
+            <div className="absolute -right-16 -top-14 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl" />
+            <div className="absolute -left-20 -bottom-16 h-52 w-52 rounded-full bg-cyan-400/10 blur-3xl" />
+            <div className="relative grid gap-6 lg:grid-cols-[1.45fr_1fr] lg:items-center">
+              <div className="space-y-6">
+                <Badge tone="cyan"> Welcome, Asha!</Badge>
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Welcome back</p>
+                  <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                    Enterprise Prompt Engineering Toolkit
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-6 sm:text-base" style={{ color: "#B8C1D9" }}>
+                    Manage, build, optimize, evaluate, and refine AI prompts across your team from a unified workspace.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {quickActions.map((action) => (
+                    <Link key={action.label} to={action.to}>
+                      <Button variant={action.label === "New Prompt" ? "primary" : "secondary"} size="sm" icon={action.icon}>
+                        {action.label}
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-[0_18px_44px_-30px_rgba(15,23,42,0.9)] sm:p-6">
+                <HeroIllustration />
               </div>
             </div>
-            <div className="flex shrink-0 justify-center">
-              <QualityRing score={87} size={128} stroke={10} label="Quality" />
-            </div>
-          </div>
-        </Card>
-      </motion.div>
+          </Card>
+        </motion.div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {statCards.map((s, i) => (
-          <StatCard key={s.label} {...s} index={i} />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="p-5 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold text-ink">AI Usage — Last 7 Days</h2>
-            <span className="text-xs text-ink-faint">Prompts executed</span>
-          </div>
-          <div className="mt-2">
-            <UsageAreaChart data={usageSeries} />
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h2 className="font-display text-sm font-semibold text-ink">Prompt Score Overview</h2>
-          <div className="mt-1">
-            <ScorePieChart data={scoreDistribution} />
-          </div>
-          <div className="mt-2 space-y-1.5">
-            {scoreDistribution.map((d) => (
-              <div key={d.name} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 text-ink-dim">
-                  <span className="h-2 w-2 rounded-full" style={{ background: d.color }} />
-                  {d.name}
-                </span>
-                <span className="text-ink-faint">{d.value}%</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold text-ink">Recent Prompts</h2>
-            <Link to="/library" className="text-xs text-violet-300 hover:text-violet-200">
-              View library →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {recentPrompts.slice(0, 4).map((p, i) => (
-              <PromptCard key={p.id} prompt={p} index={i} />
-            ))}
+      <section className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Workspace Overview</h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400">A quick summary of your prompt workspace essentials.</p>
           </div>
         </div>
-
-        <Card className="p-5">
-          <h2 className="font-display text-sm font-semibold text-ink">Recent Activity</h2>
-          <ul className="mt-4 space-y-4">
-            {recentActivity.map((a, i) => (
-              <motion.li
-                key={a.id}
-                initial={{ opacity: 0, x: 8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex gap-3 text-sm"
-              >
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-violet-400 to-cyan-400" />
-                <div>
-                  <p className="text-ink-dim">
-                    <span className="text-ink">{a.actor}</span> {a.action}{" "}
-                    <span className="text-ink">{a.target}</span>
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-ink-faint">{a.time}</p>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {overviewCards.map((card, index) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.04 }}
+            >
+              <Card className="h-full min-h-[170px] border border-white/10 bg-slate-950/60 p-5 shadow-[0_12px_32px_-24px_rgba(15,23,42,0.8)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/5 text-violet-300 shadow-sm shadow-black/10">
+                  <Icon name={card.icon} size={20} />
                 </div>
-              </motion.li>
-            ))}
-          </ul>
+                <p className="mt-5 text-xs uppercase tracking-[0.24em] text-slate-400">{card.label}</p>
+                <p className="mt-3 text-3xl font-semibold text-white">{card.value}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{card.description}</p>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1.65fr_1fr]">
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Recent Prompts</h2>
+              <p className="mt-1 text-sm text-slate-400">Recently created or updated prompts ready to review.</p>
+            </div>
+            {/* Removed "View all" link per design; library button in hero is primary access */}
+          </div>
+          <Card className="overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/60 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.95)]">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left">
+                <thead className="border-b border-white/10">
+                  <tr>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Prompt Name</th>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Category</th>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Updated</th>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Quality</th>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Status</th>
+                    <th className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {recentPrompts.slice(0, 4).map((prompt) => {
+                    const status = getPromptStatus(prompt.score);
+                    return (
+                      <tr key={prompt.id} className="transition-colors hover:bg-white/5">
+                        <td className="px-5 py-4 align-top text-sm text-white">{prompt.title}</td>
+                        <td className="px-5 py-4 align-top text-sm">
+                          <Badge tone={prompt.category === "Engineering" ? "violet" : prompt.category === "Marketing" ? "amber" : prompt.category === "Legal" ? "rose" : prompt.category === "Support" ? "emerald" : "cyan"}>
+                            {prompt.category}
+                          </Badge>
+                        </td>
+                        <td className="px-5 py-4 align-top text-sm text-slate-400">{prompt.updated}</td>
+                        <td className="px-5 py-4 align-top text-sm text-white">{prompt.score}</td>
+                        <td className="px-5 py-4 align-top">
+                          <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${status.tone === "emerald" ? "bg-emerald-500/10 text-emerald-300" : status.tone === "violet" ? "bg-violet-500/10 text-violet-300" : "bg-amber-500/10 text-amber-300"}`}>
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="flex items-center gap-2">
+                            <button className="text-sm px-3 py-1 rounded-md bg-white/5 text-slate-300 hover:bg-white/10">View</button>
+                            <button className="text-sm px-3 py-1 rounded-md border border-white/10 text-slate-300 hover:bg-white/10">Edit</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <Card className="h-full border border-white/10 bg-slate-950/60 p-5 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.95)]">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
+              <p className="mt-1 text-sm text-slate-400">A timeline of actions in your workspace.</p>
+            </div>
+            <Badge tone="neutral">Live</Badge>
+          </div>
+          <div className="mt-4 space-y-3">
+            {recentActivity.map((activity, index) => {
+              const meta = activityMeta[activity.action] || activityMeta.optimized;
+              return (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.04 }}
+                  className="flex items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-3"
+                >
+                  <span className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl ${meta.tone === "violet" ? "bg-violet-500/10 text-violet-300" : meta.tone === "cyan" ? "bg-cyan-500/10 text-cyan-300" : meta.tone === "amber" ? "bg-amber-500/10 text-amber-300" : meta.tone === "emerald" ? "bg-emerald-500/10 text-emerald-300" : "bg-rose-500/10 text-rose-300"}`}>
+                    <Icon name={meta.icon} size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm text-white">
+                      <span className="font-medium text-white">{activity.actor}</span> {activity.action} <span className="font-medium text-white">{activity.target}</span>
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">{activity.time}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+          </Card>
+        </section>
+      </section>
+
+      <section>
+        <Card className="border border-white/10 bg-slate-950/60 p-6 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.95)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Workspace Analytics</p>
+              <h2 className="text-2xl font-semibold text-white">View detailed analytics and prompt insights.</h2>
+            </div>
+            <Link to="/analytics">
+              <Button size="sm" variant="secondary">Open Analytics</Button>
+            </Link>
+          </div>
         </Card>
-      </div>
+      </section>
     </div>
   );
 }

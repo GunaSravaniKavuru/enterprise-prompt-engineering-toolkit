@@ -15,7 +15,7 @@ export default function DashboardLayout() {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="relative z-10 flex min-h-screen flex-col lg:pl-64">
         <Navbar onMenuClick={() => setSidebarOpen(true)} theme={theme} onToggleTheme={toggleTheme} />
-        <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        <main className="flex-1 px-3 py-4 sm:px-4 lg:px-6 lg:py-6">
           <Outlet />
         </main>
         <Footer />
