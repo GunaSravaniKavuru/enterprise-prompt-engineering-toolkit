@@ -12,6 +12,20 @@ const promptingTechniques = [
 ];
 
 const categoryOptions = [
+  "Engineering",
+  "Marketing",
+  "Legal",
+  "Analytics",
+  "Customer Support",
+  "Finance",
+  "Healthcare",
+  "HR",
+  "Education",
+  "Sales",
+  "Other",
+];
+
+const taskTypeOptions = [
   "Classification",
   "Extraction",
   "Summarization",
@@ -33,8 +47,8 @@ const outputFormatOptions = [
 
 const initialState = {
   promptName: "",
-  category: "Classification",
-  customCategory: "",
+  category: "Engineering",
+  taskType: "Classification",
   technique: "Standard",
   role: "",
   experienceLevel: "Mid-level",
@@ -219,15 +233,12 @@ export default function PromptBuilder() {
                 onChange={updateField("category")}
                 options={categoryOptions.map((option) => ({ label: option, value: option }))}
               />
-              {form.category === "Other" && (
-                <Input
-                  label="Custom Category"
-                  type="search"
-                  value={form.customCategory}
-                  onChange={updateField("customCategory")}
-                  placeholder="Type a custom category"
-                />
-              )}
+              <Select
+                label="Task Type"
+                value={form.taskType}
+                onChange={updateField("taskType")}
+                options={taskTypeOptions.map((option) => ({ label: option, value: option }))}
+              />
               <Select
                 label="Prompting Technique"
                 value={form.technique}
