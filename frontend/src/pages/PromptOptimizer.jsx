@@ -11,48 +11,60 @@ export default function PromptOptimizer() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Prompt Optimizer</h1>
-          <p className="mt-1 text-sm text-ink-dim">See how a vague prompt is rewritten into a precise, constrained instruction.</p>
-        </div>
-        <Button icon="sparkle">Optimize Another Prompt</Button>
-      </div>
+          <h1 className="font-display text-4xl font-bold tracking-tight text-white">
+  Prompt Optimizer
+</h1>
 
-      <Card className="flex flex-col items-center gap-6 p-6 sm:flex-row sm:justify-around">
+<p className="mt-3 max-w-3xl text-base leading-7 text-gray-400">
+  Compare the original and optimized prompts to understand how better prompt engineering improves clarity, precision, and AI response quality.
+</p>
+        </div>
+        <Button icon="sparkle" className="px-6 py-3 rounded-xl shadow-lg">Optimize Another Prompt</Button>
+      </div>
+<Card className="rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-xl">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
         <div className="text-center">
           <p className="mb-2 text-xs uppercase tracking-wide text-ink-faint">Before</p>
-          <QualityRing score={scoreBefore} size={92} stroke={8} />
+          <QualityRing score={scoreBefore} size={72} stroke={7} />
         </div>
-        <Icon name="chevronRight" size={22} className="text-ink-faint rotate-90 sm:rotate-0" />
+        <div className="hidden md:block border-l border-slate-700 h-20 mx-auto"></div>
         <div className="text-center">
           <p className="mb-2 text-xs uppercase tracking-wide text-ink-faint">After</p>
-          <QualityRing score={scoreAfter} size={92} stroke={8} />
+          <QualityRing score={scoreAfter} size={72} stroke={7} />
         </div>
-        <div className="text-center">
-          <p className="text-xs uppercase tracking-wide text-ink-faint">Improvement</p>
-          <p className="mt-2 font-display text-3xl font-semibold text-emerald-400">
-            +{scoreAfter - scoreBefore}
-          </p>
-        </div>
+        <div className="text-center md:col-span-3 mt-4 border-t border-slate-700 pt-4">
+  <p className="text-xs uppercase tracking-wide text-ink-faint">
+    Overall Improvement
+  </p>
+
+  <p className="mt-2 font-display text-4xl font-bold text-emerald-400">
+    +{scoreAfter - scoreBefore}
+  </p>
+</div>
+        </div> 
       </Card>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="p-5">
-          <h2 className="font-display text-sm font-semibold text-ink">Original Prompt</h2>
-          <p className="mt-3 rounded-xl bg-black/30 p-4 text-sm leading-relaxed text-ink-dim">{original}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="p-8 rounded-2xl border border-slate-700 bg-slate-900/60 shadow-lg hover:border-cyan-500/40 transition-all duration-300">
+          <h2 className="font-display text-xl font-semibold text-white">Original Prompt</h2>
+          <p className="mt-4 rounded-xl border border-slate-700 bg-slate-950 p-6 text-sm leading-8 text-gray-300">{original}</p>
         </Card>
-        <Card className="p-5 border-violet-500/20">
-          <h2 className="font-display text-sm font-semibold text-ink">Optimized Prompt</h2>
-          <p className="mt-3 rounded-xl bg-black/30 p-4 text-sm leading-relaxed text-ink">{optimized}</p>
+       <Card className="p-8 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/20 to-slate-900 shadow-lg">
+          <h2 className="font-display text-xl font-semibold text-violet-300">Optimized Prompt</h2>
+          <p className="mt-4 rounded-xl border border-violet-500/20 bg-black/40 p-6 text-sm leading-8 text-white">{optimized}</p>
         </Card>
       </div>
 
-      <Card className="p-5">
-        <h2 className="font-display text-sm font-semibold text-ink">Improvement Summary</h2>
-        <ul className="mt-3 space-y-2.5">
+      <Card className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8 shadow-xl">
+        <h2 className="font-display text-xl font-semibold text-white">Improvement Summary</h2>
+       <ul className="mt-6 space-y-4">
           {summary.map((s, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-sm text-ink-dim">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-400 to-cyan-400">
-                <Icon name="check" size={12} className="text-black" />
+           <li
+  key={i}
+  className="flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-900/50 p-4 text-base text-gray-200 transition-all hover:border-violet-500/40"
+>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+                <Icon name="check" size={16} className="text-emerald-400" />
               </span>
               {s}
             </li>
