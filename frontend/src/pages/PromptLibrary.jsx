@@ -38,7 +38,7 @@ export default function PromptLibrary() {
   }, [query, category, sort, favOnly]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Prompt Library</h1>
@@ -106,7 +106,7 @@ export default function PromptLibrary() {
           <p className="text-sm text-ink-dim">No prompts match your filters. Try a different search or category.</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
           {filtered.map((p, i) => (
             <PromptCard key={p.id} prompt={p} index={i} />
           ))}

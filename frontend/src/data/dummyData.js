@@ -73,7 +73,6 @@ export const promptLibrary = [
   { id: "l1", title: "Customer Churn Diagnosis Agent", category: "Analytics", tags: ["retention", "sql", "diagnosis"], score: 92, favorite: true, updated: "2h ago", author: "Asha Rao" },
   { id: "l2", title: "Onboarding Email Sequence Writer", category: "Marketing", tags: ["email", "lifecycle"], score: 78, favorite: false, updated: "5h ago", author: "Devon Cole" },
   { id: "l3", title: "SQL Query Explainer", category: "Engineering", tags: ["sql", "docs"], score: 95, favorite: true, updated: "1d ago", author: "Priya Nair" },
-  { id: "l4", title: "Legal Clause Simplifier", category: "Legal", tags: ["contracts", "plain-language"], score: 64, favorite: false, updated: "2d ago", author: "Asha Rao" },
   { id: "l5", title: "Support Ticket Triage", category: "Support", tags: ["routing", "priority"], score: 88, favorite: true, updated: "3d ago", author: "Devon Cole" },
   { id: "l6", title: "Release Notes Summarizer", category: "Engineering", tags: ["changelog", "summary"], score: 81, favorite: false, updated: "4d ago", author: "Priya Nair" },
   { id: "l7", title: "Ad Copy A/B Generator", category: "Marketing", tags: ["ads", "variants"], score: 73, favorite: false, updated: "5d ago", author: "Asha Rao" },
@@ -111,6 +110,7 @@ export const promptLibrary = [
 ];
 
 
+
 export const categories = [
   "All",
   "Analytics",
@@ -124,16 +124,32 @@ export const categories = [
 ];
 
 export const aiModels = [
-  { id: "gpt5", name: "GPT-5", provider: "OpenAI" },
-  { id: "claude", name: "Claude Sonnet 5", provider: "Anthropic" },
-  { id: "gemini", name: "Gemini 2.5 Pro", provider: "Google" },
-  { id: "llama", name: "Llama 4", provider: "Meta" },
+  {
+    id: "gemini",
+    name: "Gemini 2.5 Pro",
+    provider: "Google",
+  },
 ];
 
 export const playgroundHistory = [
-  { id: "h1", prompt: "Customer Churn Diagnosis Agent", model: "Claude Sonnet 5", time: "10 min ago" },
-  { id: "h2", prompt: "SQL Query Explainer", model: "GPT-5", time: "1h ago" },
-  { id: "h3", prompt: "Support Ticket Triage", model: "Gemini 2.5 Pro", time: "3h ago" },
+  {
+    id: "h1",
+    prompt: "Customer Churn Diagnosis Agent",
+    model: "Google Gemini",
+    time: "10 min ago",
+  },
+  {
+    id: "h2",
+    prompt: "SQL Query Explainer",
+    model: "Google Gemini",
+    time: "1 hour ago",
+  },
+  {
+    id: "h3",
+    prompt: "Support Ticket Triage",
+    model: "Google Gemini",
+    time: "3 hours ago",
+  },
 ];
 
 export const dummyOutput = `Here's the structured diagnosis for the churn signal you provided:

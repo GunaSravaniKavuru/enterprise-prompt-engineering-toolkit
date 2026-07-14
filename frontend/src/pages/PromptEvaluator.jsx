@@ -7,7 +7,7 @@ export default function PromptEvaluator() {
   const { overall, metrics, suggestions } = evaluatorScores;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Prompt Evaluator</h1>
         <p className="mt-1 text-sm text-ink-dim">A structural quality breakdown of your current prompt.</p>
@@ -54,7 +54,7 @@ export default function PromptEvaluator() {
         <QualityRing score={overall} size={140} stroke={11} label="Overall" />
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
         {metrics.map((m) => (
           <Card
   key={m.label}
