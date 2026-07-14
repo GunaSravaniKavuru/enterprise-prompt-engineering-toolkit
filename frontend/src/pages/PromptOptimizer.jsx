@@ -45,19 +45,26 @@ export default function PromptOptimizer() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="p-8 rounded-2xl border border-slate-700 bg-slate-900/60 shadow-lg hover:border-cyan-500/40 transition-all duration-300">
-          <h2 className="font-display text-xl font-semibold text-white">Original Prompt</h2>
-          <p className="mt-4 rounded-xl border border-slate-700 bg-slate-950 p-6 text-sm leading-8 text-gray-300">{original}</p>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
-        <Card className="p-5">
-          <h2 className="font-display text-sm font-semibold text-ink">Original Prompt</h2>
-          <p className="mt-3 rounded-xl bg-black/30 p-4 text-sm leading-relaxed text-ink-dim">{original}</p>
-        </Card>
-       <Card className="p-8 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/20 to-slate-900 shadow-lg">
-          <h2 className="font-display text-xl font-semibold text-violet-300">Optimized Prompt</h2>
-          <p className="mt-4 rounded-xl border border-violet-500/20 bg-black/40 p-6 text-sm leading-8 text-white">{optimized}</p>
-        </Card>
-      </div>
+  <Card className="p-8 rounded-2xl border border-slate-700 bg-slate-900/60 shadow-lg hover:border-cyan-500/40 transition-all duration-300">
+    <h2 className="font-display text-xl font-semibold text-white">
+      Original Prompt
+    </h2>
+
+    <p className="mt-4 rounded-xl border border-slate-700 bg-slate-950 p-6 text-sm leading-8 text-gray-300">
+      {original}
+    </p>
+  </Card>
+
+  <Card className="p-8 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/20 to-slate-900 shadow-lg">
+    <h2 className="font-display text-xl font-semibold text-violet-300">
+      Optimized Prompt
+    </h2>
+
+    <p className="mt-4 rounded-xl border border-violet-500/20 bg-black/40 p-6 text-sm leading-8 text-white">
+      {optimized}
+    </p>
+  </Card>
+</div>
 
       <Card className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8 shadow-xl">
         <h2 className="font-display text-xl font-semibold text-white">Improvement Summary</h2>

@@ -9,24 +9,13 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
   const unread = notifications.filter((n) => n.unread).length;
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[var(--color-border-soft)] bg-[#0a0c14]/70 px-4 backdrop-blur-xl lg:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[var(--color-border-soft)] bg-[#0a0c14]/70 px-4 backdrop-blur-xl lg:gap-4 lg:px-6">
       <button
         onClick={onMenuClick}
         className="rounded-lg p-2 text-ink-dim hover:text-ink hover:bg-white/5 focus-ring lg:hidden"
       >
         <Icon name="menu" size={20} />
       </button>
-
-      <div className="hidden items-center gap-2 rounded-xl border border-[var(--color-border-soft)] bg-white/[0.03] px-3 py-2 text-sm text-ink-faint lg:flex lg:w-80">
-        <Icon name="search" size={16} />
-        <input
-          placeholder="Search prompts, projects, models…"
-          className="w-full bg-transparent outline-none placeholder:text-ink-faint text-ink"
-        />
-        <kbd className="rounded border border-[var(--color-border-soft)] px-1.5 py-0.5 text-[10px] text-ink-faint">
-          ⌘K
-        </kbd>
-      </div>
 
       <div className="ml-auto flex items-center gap-2">
         <button

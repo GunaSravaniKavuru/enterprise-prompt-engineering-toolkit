@@ -416,22 +416,13 @@ export default function PromptBuilder() {
           {/* Rules */}
           <Card className="border border-white/10 bg-slate-950/60 p-5 shadow-[0_12px_32px_-24px_rgba(15,23,42,0.8)]">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Rules</h2>
-            <div className="space-y-3">
-              <Textarea
-                label="Positive Rules (What the AI SHOULD do)"
-                rows={2}
-                value={form.positiveConstraints}
-                onChange={updateField("positiveConstraints")}
-                placeholder="e.g. Use simple language, include examples"
-              />
-              <Textarea
-                label="Negative Rules (What the AI should NEVER do)"
-                rows={2}
-                value={form.negativeConstraints}
-                onChange={updateField("negativeConstraints")}
-                placeholder="e.g. Avoid jargon, don't include personal opinions"
-              />
-            </div>
+            <Textarea
+              label="Rules"
+              rows={3}
+              value={form.positiveConstraints}
+              onChange={updateField("positiveConstraints")}
+              placeholder="Example: Use simple language and explain step by step."
+            />
           </Card>
 
           {/* Output Format */}
@@ -455,6 +446,18 @@ export default function PromptBuilder() {
                 </div>
               )}
             </div>
+          </Card>
+
+          {/* Output Constraints */}
+          <Card className="border border-white/10 bg-slate-950/60 p-5 shadow-[0_12px_32px_-24px_rgba(15,23,42,0.8)]">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Output Constraints </h2>
+            <Textarea
+              label="Output Constraints "
+              rows={3}
+              value={form.negativeConstraints}
+              onChange={updateField("negativeConstraints")}
+              placeholder="Example: Maximum 100 words."
+            />
           </Card>
 
           {/* Generate Prompt */}
