@@ -12,7 +12,6 @@ export const navItems = [
   { label: "Version History", path: "/versions", icon: "clock" },
   { label: "Analytics", path: "/analytics", icon: "chart" },
   { label: "Export / Import", path: "/export-import", icon: "swap" },
-  { label: "Settings", path: "/settings", icon: "settings" },
 ];
 
 export const currentUser = {
@@ -79,9 +78,50 @@ export const promptLibrary = [
   { id: "l6", title: "Release Notes Summarizer", category: "Engineering", tags: ["changelog", "summary"], score: 81, favorite: false, updated: "4d ago", author: "Priya Nair" },
   { id: "l7", title: "Ad Copy A/B Generator", category: "Marketing", tags: ["ads", "variants"], score: 73, favorite: false, updated: "5d ago", author: "Asha Rao" },
   { id: "l8", title: "Data Privacy FAQ Bot", category: "Legal", tags: ["privacy", "faq"], score: 90, favorite: true, updated: "6d ago", author: "Devon Cole" },
+  {
+  id: "l9",
+  title: "Financial Report Analyzer",
+  category: "Finance",
+  tags: ["finance", "report"],
+  score: 91,
+  favorite: false,
+  updated: "1d ago",
+  author: "Asha Rao",
+},
+{
+  id: "l10",
+  title: "Medical Report Summarizer",
+  category: "Healthcare",
+  tags: ["medical", "summary"],
+  score: 86,
+  favorite: true,
+  updated: "2d ago",
+  author: "Priya Nair",
+},
+{
+  id: "l11",
+  title: "Interview Question Generator",
+  category: "Human Resources",
+  tags: ["hr", "interview"],
+  score: 89,
+  favorite: false,
+  updated: "5h ago",
+  author: "Devon Cole",
+},
 ];
 
-export const categories = ["All", "Analytics", "Marketing", "Engineering", "Legal", "Support"];
+
+export const categories = [
+  "All",
+  "Analytics",
+  "Marketing",
+  "Engineering",
+  "Legal",
+  "Support",
+  "Finance",
+  "Healthcare",
+  "Human Resources",
+];
 
 export const aiModels = [
   { id: "gpt5", name: "GPT-5", provider: "OpenAI" },
@@ -122,16 +162,18 @@ export const optimizerExample = {
 export const evaluatorScores = {
   overall: 87,
   metrics: [
-    { label: "Clarity", value: 92 },
-    { label: "Specificity", value: 84 },
-    { label: "Context", value: 79 },
-    { label: "Constraints", value: 88 },
-    { label: "Completeness", value: 91 },
+    { label: "A1 – Format Compliance", value: 92, description: "Checks whether the prompt clearly specifies the expected output format." },
+    { label: "A2 – Label Accuracy", value: 84, description: "Checks whether the prompt provides clear instructions that lead to correct outputs." },
+    { label: "A3 – Schema Completeness", value: 79, description: "Checks whether all required information and fields are included." },
+    { label: "A4 – Boundary Respect", value: 88, description: "Checks whether the prompt prevents unnecessary information and keeps responses within scope." },
+    { label: "A5 – Consistency & Stability", value: 91, description: "Checks whether the prompt is likely to produce consistent results across multiple runs." },
   ],
   suggestions: [
-    "Specify the desired tone (e.g. formal, conversational) explicitly.",
-    "Add an example of an ideal response to anchor the output format.",
-    "Clarify what should happen when required input data is missing.",
+    "Specify the expected output format to improve A1.",
+    "Add clearer task instructions to improve A2.",
+    "Include all required fields to improve A3.",
+    "Prevent extra explanations to improve A4.",
+    "Reduce ambiguity to improve A5.",
   ],
 };
 

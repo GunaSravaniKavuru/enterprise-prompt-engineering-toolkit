@@ -8,7 +8,9 @@ import { promptLibrary, categories } from "../data/dummyData";
 const sortOptions = [
   { value: "updated", label: "Recently Updated" },
   { value: "score", label: "Highest Score" },
-  { value: "title", label: "Title A–Z" },
+  { value: "lowScore", label: "Lowest Score" },
+  { value: "title", label: "Title A-Z" },
+  { value: "oldest", label: "Oldest Updated" },
 ];
 
 export default function PromptLibrary() {
@@ -16,6 +18,7 @@ export default function PromptLibrary() {
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("updated");
   const [favOnly, setFavOnly] = useState(false);
+
 
   const filtered = useMemo(() => {
     let items = promptLibrary.filter((p) => {
@@ -26,8 +29,11 @@ export default function PromptLibrary() {
       const matchesFav = !favOnly || p.favorite;
       return matchesQuery && matchesCategory && matchesFav;
     });
-    if (sort === "score") items = [...items].sort((a, b) => b.score - a.score);
-    if (sort === "title") items = [...items].sort((a, b) => a.title.localeCompare(b.title));
+    if (sort === "lowScore") {
+  items.sort((a, b) => a.score - b.score);
+}
+
+
     return items;
   }, [query, category, sort, favOnly]);
 
@@ -38,7 +44,9 @@ export default function PromptLibrary() {
           <h1 className="font-display text-2xl font-semibold text-ink">Prompt Library</h1>
           <p className="mt-1 text-sm text-ink-dim">{promptLibrary.length} prompts across {categories.length - 1} categories</p>
         </div>
-        <Button icon="plus" size="sm">New Prompt</Button>
+        <Button icon="plus" size="sm">
+  New Prompt
+</Button>
       </div>
 
       <Card className="p-4">
@@ -57,11 +65,11 @@ export default function PromptLibrary() {
               <button
                 key={c}
                 onClick={() => setCategory(c)}
-                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                  category === c
-                    ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
-                    : "border-[var(--color-border-soft)] text-ink-dim hover:text-ink"
-                }`}
+                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-300 ${
+  category === c
+    ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
+    : "border-[var(--color-border-soft)] text-ink-dim hover:text-ink hover:bg-white/5 hover:border-violet-400/30 hover:-translate-y-0.5"
+}`}
               >
                 {c}
               </button>
@@ -105,5 +113,6 @@ export default function PromptLibrary() {
         </div>
       )}
     </div>
+    
   );
 }
