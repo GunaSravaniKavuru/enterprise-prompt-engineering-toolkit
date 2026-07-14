@@ -11,6 +11,9 @@ const categoryTone = {
   Engineering: "violet",
   Legal: "rose",
   Support: "emerald",
+  Finance: "lime",
+  Healthcare: "red",
+  "Human Resources": "blue",
 };
 
 export default function PromptCard({ prompt, index = 0, compact = false }) {
@@ -22,14 +25,26 @@ export default function PromptCard({ prompt, index = 0, compact = false }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
     >
-      <Card className="group flex h-full min-h-[220px] flex-col p-5 transition-colors hover:border-[var(--color-border-hi)]">
+      <Card className="group flex h-full flex-col p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-border-hi)] hover:shadow-xl">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Badge tone={categoryTone[prompt.category] || "neutral"}>{prompt.category}</Badge>
             <h3 className="mt-2.5 truncate font-display text-sm font-semibold text-ink">{prompt.title}</h3>
             <p className="mt-1 text-xs text-ink-faint">Updated {prompt.updated}</p>
           </div>
-          {!compact && <QualityRing score={prompt.score} size={56} stroke={5} />}
+          {!compact && (
+  <div className="flex flex-col items-center">
+    <span className="mb-1 text-[11px] font-medium text-ink-faint">
+      Quality
+    </span>
+
+    <QualityRing
+      score={prompt.score}
+      size={56}
+      stroke={5}
+    />
+  </div>
+)}
         </div>
 
         {prompt.tags && (
