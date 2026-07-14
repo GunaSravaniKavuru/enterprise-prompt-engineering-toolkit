@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 
 function toneColor(score) {
-  if (score >= 85) return ["#34d399", "#22d3ee"];
-  if (score >= 70) return ["#22d3ee", "#8b5cf6"];
-  if (score >= 55) return ["#f5a623", "#fb7185"];
-  return ["#fb7185", "#f43f5e"];
+  // 90-100 → Green
+  if (score >= 90) return ["#971679", "#0bf15f"];
+
+  // 70-89 → Teal
+  if (score >= 70) return ["#277655", "#1c1cd5"];
+
+  // Below 70 → Red
+  return ["#bdd03f", "#dc2626"];
 }
 
 export default function QualityRing({ score = 0, size = 88, stroke = 8, label, sub }) {
