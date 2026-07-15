@@ -5,6 +5,7 @@ import { ToastProvider } from "./components/common/Toast";
 import Dashboard from "./pages/Dashboard";
 import PromptBuilder from "./pages/PromptBuilder";
 import PromptLibrary from "./pages/PromptLibrary";
+import PromptDetails from "./pages/PromptDetails";
 import Playground from "./pages/Playground";
 import PromptOptimizer from "./pages/PromptOptimizer";
 import PromptEvaluator from "./pages/PromptEvaluator";

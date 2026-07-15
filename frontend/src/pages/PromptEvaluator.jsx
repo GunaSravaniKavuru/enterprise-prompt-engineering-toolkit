@@ -1,9 +1,14 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import Card from "../components/common/Card";
 import QualityRing from "../components/common/QualityRing";
 import Icon from "../components/common/Icon";
+import Button from "../components/common/Button";
 import { evaluatorScores } from "../data/dummyData";
 
 export default function PromptEvaluator() {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const prompt = state?.prompt;
   const { overall, metrics, suggestions } = evaluatorScores;
 
   return (
@@ -12,6 +17,34 @@ export default function PromptEvaluator() {
         <h1 className="font-display text-2xl font-semibold text-ink">Prompt Evaluator</h1>
         <p className="mt-1 text-sm text-ink-dim">A structural quality breakdown of your current prompt.</p>
       </div>
+
+      {prompt ? (
+        <Card className="p-5">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">Prompt Being Evaluated</div>
+          <div className="space-y-3 text-sm text-ink-dim">
+            <div>
+              <span className="font-semibold text-ink">Title:</span> {prompt.title}
+            </div>
+            <div>
+              <span className="font-semibold text-ink">Category:</span> {prompt.category}
+            </div>
+            <div>
+              <span className="font-semibold text-ink">Prompt Content:</span>
+              <div className="mt-2 rounded-xl border border-[var(--color-border-soft)] bg-white/[0.03] p-3 text-ink">{prompt.content}</div>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-6 text-center">
+          <p className="text-lg font-semibold text-ink">No Prompt Selected</p>
+          <p className="mt-2 text-sm text-ink-dim">Choose a prompt from the library to begin evaluation.</p>
+          <div className="mt-4 flex justify-center">
+            <Button size="sm" variant="secondary" onClick={() => navigate("/library")}>
+              Back to Prompt Library
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Card className="flex flex-col items-center gap-6 p-8 sm:flex-row sm:justify-between">
         <div>
