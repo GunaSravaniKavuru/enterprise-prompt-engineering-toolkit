@@ -16,8 +16,8 @@ const quickActions = [
 const overviewCards = [
   { label: "Total Prompts", value: "1,284", description: "All prompts in your workspace", icon: "plus" },
   { label: "Average Prompt Quality", value: "87.3", description: "Across all prompts", icon: "sparkle" },
-  { label: "Pending Evaluations", value: "2", description: "Ready for review and scoring", icon: "gauge" },
-  { label: "Recent Updates", value: "6", description: "Edited or refined this week", icon: "clock" },
+  { label: "Prompts Evaluated", value: "2", description: "Total prompts successfully evaluated.", icon: "check" },
+  { label: "Prompt Optimizations", value: "6", description: "Prompts improved using the Prompt Optimizer.", icon: "sparkle" },
 ];
 
 const activityMeta = {

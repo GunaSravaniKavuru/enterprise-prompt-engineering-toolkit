@@ -2,6 +2,7 @@ import { useState } from "react";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
 import Badge from "../components/common/Badge";
+import Icon from "../components/common/Icon";
 import { Input, Select, Textarea } from "../components/common/Input";
 import { useToast } from "../components/common/Toast";
 import { useNavigate } from "react-router-dom";
@@ -226,6 +227,24 @@ export default function PromptBuilder() {
 
     showToast("Opening in Playground");
     navigate("/playground");
+  };
+
+  const evaluatePrompt = () => {
+    if (!generatedPrompt) return;
+
+    navigate("/evaluator", {
+      state: {
+        prompt: {
+          title: form.promptName?.trim() || "Generated Prompt",
+          category: form.category,
+          content: generatedPrompt,
+          score: null,
+          updated: "just now",
+          author: "You",
+          favorite: false,
+        },
+      },
+    });
   };
 
   const hasGeneratedPrompt = !!generatedPrompt;
@@ -496,15 +515,20 @@ export default function PromptBuilder() {
 
             {!isGenerating && !generatedPrompt && (
               <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 px-6 py-10 text-center">
-                <div className="max-w-sm space-y-3">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-500/10 text-lg">
-                    ✨
+                <div className="max-w-sm space-y-4">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-300">
+                    <Icon name="file" size={22} />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-white">Ready to Generate</h3>
-                    <p className="text-sm text-slate-400">Complete the Prompt Builder form.</p>
-                    <p className="text-sm text-slate-400">Click "Generate Prompt" to create a professional AI prompt.</p>
-                    <p className="text-sm text-slate-400">Your generated prompt will appear here.</p>
+                    <h3 className="text-lg font-semibold text-white">No Prompt Generated</h3>
+                    <p className="text-sm leading-6 text-slate-400">
+                      Complete the required fields and click 'Generate Prompt' to create your prompt.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Badge tone="cyan">AI Generated</Badge>
+                    <Badge tone="emerald">Ready to Save</Badge>
+                    <Badge tone="violet">Test in Playground</Badge>
                   </div>
                 </div>
               </div>
@@ -536,19 +560,35 @@ export default function PromptBuilder() {
                   <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-200">{generatedPrompt}</pre>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Button variant="secondary" size="sm" icon="copy" onClick={copyPrompt} disabled={!hasGeneratedPrompt}>
-                    Copy
-                  </Button>
-                  <Button variant="secondary" size="sm" icon="check" onClick={savePrompt} disabled={!hasGeneratedPrompt}>
+                <div className="mt-4 flex w-full flex-wrap items-center gap-2 lg:flex-nowrap lg:gap-2.5">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="copy"
+                    onClick={copyPrompt}
+                    disabled={!hasGeneratedPrompt}
+                    className="h-9 w-9 shrink-0 px-0"
+                    title="Copy prompt"
+                    aria-label="Copy prompt"
+                  />
+                  <Button size="sm" icon="check" onClick={savePrompt} disabled={!hasGeneratedPrompt} className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-3 text-[11px] sm:text-xs">
                     Save Prompt
                   </Button>
-                  <Button size="sm" icon="play" onClick={testInPlayground} disabled={!hasGeneratedPrompt}>
+                  <Button size="sm" icon="gauge" onClick={evaluatePrompt} disabled={!hasGeneratedPrompt} className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-3 text-[11px] sm:text-xs">
+                    Evaluate
+                  </Button>
+                  <Button size="sm" icon="play" onClick={testInPlayground} disabled={!hasGeneratedPrompt} className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-2.5 text-[11px] sm:px-3 sm:text-xs">
                     Test in Playground
                   </Button>
-                  <Button variant="secondary" size="sm" icon="x" onClick={resetPrompt}>
-                    Clear
-                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="x"
+                    onClick={resetPrompt}
+                    className="h-9 w-9 shrink-0 px-0"
+                    title="Clear prompt"
+                    aria-label="Clear prompt"
+                  />
                 </div>
               </div>
             )}
