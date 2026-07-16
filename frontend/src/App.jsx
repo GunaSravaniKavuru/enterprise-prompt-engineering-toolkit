@@ -27,6 +27,7 @@ export default function App() {
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/builder" element={<PromptBuilder />} />
     <Route path="/library" element={<PromptLibrary />} />
+    <Route path="/library/:id" element={<PromptDetails />} />
     <Route path="/playground" element={<Playground />} />
     <Route path="/optimizer" element={<PromptOptimizer />} />
     <Route path="/evaluator" element={<PromptEvaluator />} />
