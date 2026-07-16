@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Card from "../components/common/Card";
 import QualityRing from "../components/common/QualityRing";
@@ -9,7 +10,25 @@ export default function PromptEvaluator() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const prompt = state?.prompt;
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [evaluatedPrompt, setEvaluatedPrompt] = useState(null);
   const { overall, metrics, suggestions } = evaluatorScores;
+  const displayPrompt = prompt ?? evaluatedPrompt;
+
+  const handleEvaluateCustomPrompt = () => {
+    if (!customPrompt.trim()) return;
+
+    setEvaluatedPrompt({
+      title: "Untitled Prompt",
+      category: "Analytics",
+      content: customPrompt.trim(),
+    });
+  };
+
+  const handleClearCustomPrompt = () => {
+    setCustomPrompt("");
+    setEvaluatedPrompt(null);
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
@@ -18,19 +37,44 @@ export default function PromptEvaluator() {
         <p className="mt-1 text-sm text-ink-dim">A structural quality breakdown of your current prompt.</p>
       </div>
 
-      {prompt ? (
+      <Card className="p-5">
+        <div className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">New Prompt</div>
+        <div className="grid gap-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink">Prompt Content</label>
+            <textarea
+              rows="5"
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="Enter your custom prompt"
+              className="w-full rounded-xl border border-[var(--color-border-soft)] bg-slate-950/60 px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-cyan-400"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button size="sm" onClick={handleEvaluateCustomPrompt}>
+              Evaluate Prompt
+            </Button>
+            <Button size="sm" variant="secondary" onClick={handleClearCustomPrompt}>
+              Clear
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {displayPrompt ? (
         <Card className="p-5">
           <div className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">Prompt Being Evaluated</div>
           <div className="space-y-3 text-sm text-ink-dim">
             <div>
-              <span className="font-semibold text-ink">Title:</span> {prompt.title}
+              <span className="font-semibold text-ink">Title:</span> {displayPrompt.title}
             </div>
             <div>
-              <span className="font-semibold text-ink">Category:</span> {prompt.category}
+              <span className="font-semibold text-ink">Category:</span> {displayPrompt.category}
             </div>
             <div>
               <span className="font-semibold text-ink">Prompt Content:</span>
-              <div className="mt-2 rounded-xl border border-[var(--color-border-soft)] bg-white/[0.03] p-3 text-ink">{prompt.content}</div>
+              <div className="mt-2 rounded-xl border border-[var(--color-border-soft)] bg-white/[0.03] p-3 text-ink">{displayPrompt.content}</div>
             </div>
           </div>
         </Card>
