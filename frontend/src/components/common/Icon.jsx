@@ -1,9 +1,9 @@
 import {
   FiGrid, FiTool, FiBookOpen, FiTerminal, FiZap, FiActivity,
   FiColumns, FiClock, FiBarChart2, FiRepeat, FiSettings,
-  FiSearch, FiBell, FiSun, FiMoon, FiChevronDown, FiStar,
-  FiCopy, FiEdit3, FiTrash2, FiEye, FiFilter, FiPlus, FiX,
-  FiCheck, FiUpload, FiDownload, FiFileText, FiRotateCcw,
+  FiSearch, FiBell, FiSun, FiMoon, FiChevronDown, FiChevronLeft,
+  FiStar, FiCopy, FiEdit3, FiTrash2, FiEye, FiFilter, FiPlus,
+  FiX, FiCheck, FiUpload, FiDownload, FiFileText, FiRotateCcw,
   FiPlay, FiTrendingUp, FiTrendingDown, FiChevronRight, FiMenu,
 } from "react-icons/fi";
 
@@ -24,6 +24,7 @@ const map = {
   sun: FiSun,
   moon: FiMoon,
   chevronDown: FiChevronDown,
+  chevronLeft: FiChevronLeft,
   chevronRight: FiChevronRight,
   star: FiStar,
   copy: FiCopy,

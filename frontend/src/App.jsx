@@ -6,6 +6,7 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import PromptBuilder from "./pages/PromptBuilder";
 import PromptLibrary from "./pages/PromptLibrary";
+import PromptDetails from "./pages/PromptDetails";
 import Playground from "./pages/Playground";
 import PromptOptimizer from "./pages/PromptOptimizer";
 import PromptEvaluator from "./pages/PromptEvaluator";
@@ -31,6 +32,7 @@ export default function App() {
 />
     <Route path="/builder" element={<PromptBuilder />} />
     <Route path="/library" element={<PromptLibrary />} />
+    <Route path="/library/:id" element={<PromptDetails />} />
     <Route path="/playground" element={<Playground />} />
     <Route path="/optimizer" element={<PromptOptimizer />} />
     <Route path="/evaluator" element={<PromptEvaluator />} />
