@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import { ToastProvider } from "./components/common/Toast";
+import Profile from "./pages/Profile";
 
 import Dashboard from "./pages/Dashboard";
 import PromptBuilder from "./pages/PromptBuilder";
@@ -16,14 +17,18 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 
 export default function App() {
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  console.log("isLoggedIn:", isLoggedIn);
   return (
     <ToastProvider>
       <BrowserRouter>
         <Routes>
-  <Route path="/" element={<Login />} />
-
+ <Route path="/" element={<Login />} />
   <Route element={<DashboardLayout />}>
-    <Route path="/dashboard" element={<Dashboard />} />
+   <Route
+  path="/dashboard"
+  element={isLoggedIn ? <Dashboard /> : <Navigate to="/" replace />}
+/>
     <Route path="/builder" element={<PromptBuilder />} />
     <Route path="/library" element={<PromptLibrary />} />
     <Route path="/playground" element={<Playground />} />
@@ -36,6 +41,10 @@ export default function App() {
     <Route path="/analytics" element={<Analytics />} />
     <Route path="/export-import" element={<ExportImport />} />
     <Route path="/settings" element={<Settings />} />
+    <Route
+  path="/profile"
+  element={isLoggedIn ? <Profile /> : <Navigate to="/" replace />}
+/>
   </Route>
 
   <Route path="*" element={<Navigate to="/" replace />} />

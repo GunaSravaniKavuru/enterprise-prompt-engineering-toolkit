@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "../common/Icon";
 import { currentUser, notifications } from "../../data/dummyData";
@@ -8,6 +9,13 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const unread = notifications.filter((n) => n.unread).length;
+  const navigate = useNavigate();
+
+const handleSignOut = () => {
+  localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("userName");
+  navigate("/");
+};
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[var(--color-border-soft)] bg-[#0a0c14]/70 px-4 backdrop-blur-xl lg:gap-4 lg:px-6">
@@ -63,8 +71,8 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
             className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-white/5 focus-ring"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-semibold text-black">
-              {userName.charAt(0).toUpperCase()}
-            </div>ss
+              {userName.charAt(0).toUpperCase()}s
+            </div>
             <div className="hidden text-left leading-tight md:block">
               <p className="text-xs font-medium text-ink">{userName}</p>
               <p className="text-[10px] text-ink-faint">{currentUser.role}</p>
@@ -80,15 +88,21 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
                 className="glass-hi absolute right-0 mt-2 w-52 rounded-2xl p-2 text-sm"
               >
                 <p className="px-3 py-2 text-xs text-ink-faint">{currentUser.org}</p>
-                <button className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5 hover:text-ink">
-                  Profile
-                </button>
+                <button
+  onClick={() => navigate("/profile")}
+  className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5"
+>
+  Profile
+</button>
                 <button className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5 hover:text-ink">
                   Billing
                 </button>
-                <button className="w-full rounded-xl px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10">
-                  Sign out
-                </button>
+                <button
+  onClick={handleSignOut}
+  className="w-full rounded-xl px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10"
+>
+  Sign out
+</button>
               </motion.div>
             )}
           </AnimatePresence>

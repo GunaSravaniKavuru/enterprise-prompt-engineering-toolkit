@@ -1,14 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
 const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 const handleLogin = (e) => {
   e.preventDefault();
+   console.log("Sign In button clicked");
   localStorage.setItem("userName", name);
+  localStorage.setItem("userEmail", email);
+  localStorage.setItem("isLoggedIn", "true");
+
   navigate("/dashboard");
 };
   return (
@@ -91,20 +97,29 @@ const handleLogin = (e) => {
                 {/* Password */}
 
                 <div>
-                  <label className="block text-sm text-slate-300 mb-2">
-                    Password
-                  </label>
+  <label className="block text-sm text-slate-300 mb-2">
+    Password
+  </label>
 
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-slate-700 bg-[#1E293B] px-4 py-3 text-white outline-none transition focus:border-cyan-400"
-                  />
-                </div>
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      placeholder="Enter your password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      className="w-full rounded-xl border border-slate-700 bg-[#1E293B] px-4 py-3 pr-12 text-white outline-none transition focus:border-cyan-400"
+    />
 
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  </div>
+</div>
                 <div className="flex items-center justify-between">
 
                   <label className="flex items-center gap-2 text-slate-300 text-sm">

@@ -2,7 +2,7 @@
 // Replace with real API responses once the backend is connected.
 
 export const navItems = [
-  { label: "Dashboard", path: "/", icon: "grid" },
+  { label: "Dashboard", path: "/dashboard", icon: "grid" },
   { label: "Prompt Builder", path: "/builder", icon: "hammer" },
   { label: "Prompt Library", path: "/library", icon: "book" },
   { label: "Playground", path: "/playground", icon: "flask" },
