@@ -28,36 +28,51 @@ const promptCatalog = [
 
 const modelCatalog = [
   {
-    id: "gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenAI",
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    provider: "Google",
     quality: 92,
-    latency: 1.3,
+    latency: 1.1,
     tokens: 1800,
-    cost: 0.021,
-    response: "GPT-4o produced a crisp, structured response with very strong technical depth and fast turnaround.",
+    inputTokens: 1200,
+    outputTokens: 600,
+    totalTokens: 1800,
+    responseTime: 1.1,
+    responseLength: 1680,
+    qualityScore: 92,
+    response: "Gemini 2.5 Flash delivered a fast, structured response with strong clarity and efficient pacing.",
     output: "## Recommendation\n- Prioritize the highest-risk segment first.\n- Keep the tone calm and action-oriented.\n\n```ts\nconst nextAction = 'Escalate to the retention pod';\n```",
   },
   {
-    id: "claude-3.7",
-    name: "Claude 3.7",
-    provider: "Anthropic",
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    provider: "Google",
     quality: 95,
     latency: 1.8,
     tokens: 2100,
-    cost: 0.018,
-    response: "Claude 3.7 was the most balanced option, combining careful reasoning with a polished executive-ready tone.",
+    inputTokens: 1450,
+    outputTokens: 650,
+    totalTokens: 2100,
+    responseTime: 1.8,
+    responseLength: 1920,
+    qualityScore: 95,
+    response: "Gemini 2.5 Pro provided a balanced, high-detail response with strong reasoning and polished structure.",
     output: "## Summary\n- The evidence strongly supports proactive outreach.\n- The recommended messaging should be concise and confident.\n\n```md\n**Key move:** sync customer success and product for a joint follow-up.\n```",
   },
   {
-    id: "gemini-2.0",
-    name: "Gemini 2.0",
+    id: "gemini-2.0-flash",
+    name: "Gemini 2.0 Flash",
     provider: "Google",
     quality: 88,
-    latency: 1.1,
+    latency: 1.3,
     tokens: 2600,
-    cost: 0.016,
-    response: "Gemini 2.0 delivered a fast, creative response with strong contextual synthesis but slightly looser structure.",
+    inputTokens: 1700,
+    outputTokens: 900,
+    totalTokens: 2600,
+    responseTime: 1.3,
+    responseLength: 1560,
+    qualityScore: 88,
+    response: "Gemini 2.0 Flash delivered a quick, creative response with strong contextual synthesis and concise formatting.",
     output: "## Snapshot\n- Excellent for broad ideation and brainstorming.\n- Less precise when strict formatting matters.\n\n```json\n{\n  \"focus\": \"clarity\"\n}\n```",
   },
 ];
@@ -207,19 +222,19 @@ function EmptyState({ onRun }) {
 function ComparisonSummary({ results }) {
   if (!results.length) return null;
 
-  const fastest = [...results].sort((a, b) => a.latency - b.latency)[0];
-  const cheapest = [...results].sort((a, b) => a.cost - b.cost)[0];
-  const highestQuality = [...results].sort((a, b) => b.quality - a.quality)[0];
-  const longest = [...results].sort((a, b) => b.outputLength - a.outputLength)[0];
-  const shortest = [...results].sort((a, b) => a.outputLength - b.outputLength)[0];
-  const bestOverall = [...results].sort((a, b) => b.weightedScore - a.weightedScore)[0];
+  const fastest = [...results].sort((a, b) => (a.responseTime ?? a.latency) - (b.responseTime ?? b.latency))[0];
+  const highestQuality = [...results].sort((a, b) => (b.qualityScore ?? b.quality) - (a.qualityScore ?? a.quality))[0];
+  const longest = [...results].sort((a, b) => (b.responseLength ?? b.outputLength) - (a.responseLength ?? a.outputLength))[0];
+  const highestTotalTokens = [...results].sort((a, b) => (b.totalTokens ?? b.tokens) - (a.totalTokens ?? a.tokens))[0];
+  const highestInputTokens = [...results].sort((a, b) => (b.inputTokens ?? 0) - (a.inputTokens ?? 0))[0];
+  const bestOverall = [...results].sort((a, b) => (b.weightedScore ?? 0) - (a.weightedScore ?? 0))[0];
 
   const items = [
-    { title: "Fastest", value: fastest.name, detail: `${fastest.latency.toFixed(1)}s`, tone: "cyan" },
-    { title: "Lowest cost", value: cheapest.name, detail: `$${cheapest.cost.toFixed(3)}`, tone: "emerald" },
-    { title: "Highest quality", value: highestQuality.name, detail: `${highestQuality.quality}/100`, tone: "violet" },
-    { title: "Longest response", value: longest.name, detail: `${longest.outputLength} chars`, tone: "amber" },
-    { title: "Shortest response", value: shortest.name, detail: `${shortest.outputLength} chars`, tone: "amber" },
+    { title: "Fastest", value: fastest.name, detail: `${(fastest.responseTime ?? fastest.latency).toFixed(1)}s`, tone: "cyan" },
+    { title: "Highest quality", value: highestQuality.name, detail: `${highestQuality.qualityScore ?? highestQuality.quality}/100`, tone: "violet" },
+    { title: "Most input tokens", value: highestInputTokens.name, detail: `${(highestInputTokens.inputTokens ?? 0).toLocaleString()}`, tone: "emerald" },
+    { title: "Longest response", value: longest.name, detail: `${longest.responseLength ?? longest.outputLength} chars`, tone: "amber" },
+    { title: "Most total tokens", value: highestTotalTokens.name, detail: `${(highestTotalTokens.totalTokens ?? highestTotalTokens.tokens).toLocaleString()}`, tone: "amber" },
     { title: "Best overall", value: bestOverall.name, detail: `${bestOverall.weightedScore}/100`, tone: "violet" },
   ];
 
@@ -262,28 +277,28 @@ function ComparisonResults({ results, onCopy, onDownload }) {
               </div>
               <p className="mt-2 text-sm leading-7 text-ink-dim">{result.response}</p>
             </div>
-            <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>Score {result.quality}</Badge>
+            <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>Score {result.qualityScore ?? result.quality}</Badge>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
               <div className="flex items-center justify-between">
                 <span>Response time</span>
-                <span className="font-semibold text-ink">{result.latency.toFixed(1)}s</span>
+                <span className="font-semibold text-ink">{(result.responseTime ?? result.latency).toFixed(1)}s</span>
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <span>Tokens</span>
-                <span className="font-semibold text-ink">{result.tokens.toLocaleString()}</span>
+                <span>Response length</span>
+                <span className="font-semibold text-ink">{result.responseLength ?? result.outputLength} chars</span>
               </div>
             </div>
             <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
               <div className="flex items-center justify-between">
-                <span>Estimated cost</span>
-                <span className="font-semibold text-ink">${result.cost.toFixed(3)}</span>
+                <span>Input tokens</span>
+                <span className="font-semibold text-ink">{(result.inputTokens ?? 0).toLocaleString()}</span>
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <span>Length</span>
-                <span className="font-semibold text-ink">{result.outputLength} chars</span>
+                <span>Output tokens</span>
+                <span className="font-semibold text-ink">{(result.outputTokens ?? 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -309,11 +324,16 @@ function ComparisonResults({ results, onCopy, onDownload }) {
 function ComparisonInsights({ results }) {
   if (!results.length) return null;
 
+  const fastest = [...results].sort((a, b) => (a.responseTime ?? a.latency) - (b.responseTime ?? b.latency))[0];
+  const highestQuality = [...results].sort((a, b) => (b.qualityScore ?? b.quality) - (a.qualityScore ?? a.quality))[0];
+  const highestTotalTokens = [...results].sort((a, b) => (b.totalTokens ?? b.tokens) - (a.totalTokens ?? a.tokens))[0];
+  const longest = [...results].sort((a, b) => (b.responseLength ?? b.outputLength) - (a.responseLength ?? a.outputLength))[0];
+
   const insights = [
-    `✓ ${results[0].name} produced the fastest response for this prompt.`,
-    `✓ ${results.find((item) => item.quality >= 93)?.name || results[0].name} delivered the highest quality score.`,
-    `✓ ${results.reduce((best, item) => (item.cost < best.cost ? item : best), results[0]).name} had the lowest estimated cost.`,
-    `✓ ${results.reduce((best, item) => (item.outputLength > best.outputLength ? item : best), results[0]).name} generated the longest explanation.`,
+    `✓ Fastest response: ${fastest.name} (${(fastest.responseTime ?? fastest.latency).toFixed(1)}s).`,
+    `✓ Highest quality score: ${highestQuality.name} (${highestQuality.qualityScore ?? highestQuality.quality}/100).`,
+    `✓ Highest total token usage: ${highestTotalTokens.name} (${(highestTotalTokens.totalTokens ?? highestTotalTokens.tokens).toLocaleString()} tokens).`,
+    `✓ Longest response length: ${longest.name} (${longest.responseLength ?? longest.outputLength} chars).`,
   ];
 
   return (
@@ -336,7 +356,7 @@ function ComparisonInsights({ results }) {
 
 export default function ComparisonWorkspace() {
   const [prompt, setPrompt] = useState(promptCatalog[0].id);
-  const [selectedModels, setSelectedModels] = useState(["gpt-4o", "claude-3.7", "gemini-2.0"]);
+  const [selectedModels, setSelectedModels] = useState(["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"]);
   const [variables, setVariables] = useState({
     accountId: "AC-2048",
     segment: "Enterprise",
@@ -425,17 +445,28 @@ function buildResults(selectedModels, prompt, variables) {
       if (!model) return null;
 
       const outputLength = model.output.length;
-      const weightedScore = Math.round(model.quality * 0.7 + (100 - model.latency * 20) * 0.15 + (100 - model.cost * 900) * 0.15);
+      const responseTime = model.responseTime ?? model.latency;
+      const qualityScore = model.qualityScore ?? model.quality;
+      const inputTokens = model.inputTokens ?? Math.round((model.totalTokens ?? model.tokens) * 0.7);
+      const outputTokens = model.outputTokens ?? Math.round((model.totalTokens ?? model.tokens) * 0.3);
+      const totalTokens = model.totalTokens ?? model.tokens;
+      const weightedScore = Math.round(qualityScore * 0.7 + (100 - responseTime * 20) * 0.15 + (100 - totalTokens / 40) * 0.15);
 
       return {
         ...model,
         id: model.id,
         name: model.name,
         provider: model.provider,
-        quality: model.quality,
-        latency: model.latency,
-        tokens: model.tokens,
-        cost: model.cost,
+        quality: qualityScore,
+        latency: responseTime,
+        tokens: totalTokens,
+        cost: 0,
+        inputTokens,
+        outputTokens,
+        totalTokens,
+        responseTime,
+        responseLength: outputLength,
+        qualityScore,
         output: `${model.output}\n\nPrompt: ${promptDescription}\nVariables: ${Object.entries(variables).map(([key, value]) => `${key}=${value}`).join(", ")}`,
         outputLength,
         weightedScore,
