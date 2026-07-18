@@ -3,17 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "../common/Icon";
 import { currentUser, notifications } from "../../data/dummyData";
-const userName = localStorage.getItem("userName") || "Guest";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const unread = notifications.filter((n) => n.unread).length;
   const navigate = useNavigate();
+  const { userName, logout } = useAuth();
 
 const handleSignOut = () => {
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("userName");
+  logout();
   navigate("/");
 };
 

@@ -16,42 +16,51 @@ import Analytics from "./pages/Analytics";
 import ExportImport from "./pages/ExportImport";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+function AppRoutes() {
+  const { isLoggedIn } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route element={<DashboardLayout />}>
+        <Route
+          path="/dashboard"
+          element={isLoggedIn ? <Dashboard /> : <Navigate to="/" replace />}
+        />
+        <Route path="/builder" element={<PromptBuilder />} />
+        <Route path="/library" element={<PromptLibrary />} />
+        <Route path="/library/:id" element={<PromptDetails />} />
+        <Route path="/playground" element={<Playground />} />
+        <Route path="/optimizer" element={<PromptOptimizer />} />
+        <Route path="/evaluator" element={<PromptEvaluator />} />
+        <Route path="/comparison" element={<ModelComparison />} />
+        <Route path="/versions" element={<VersionHistory />} />
+        <Route path="/version-history" element={<VersionHistory />} />
+        <Route path="/versionhistory" element={<VersionHistory />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/export-import" element={<ExportImport />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/profile"
+          element={isLoggedIn ? <Profile /> : <Navigate to="/" replace />}
+        />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export default function App() {
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-  console.log("isLoggedIn:", isLoggedIn);
   return (
-    <ToastProvider>
-      <BrowserRouter>
-        <Routes>
- <Route path="/" element={<Login />} />
-  <Route element={<DashboardLayout />}>
-   <Route
-  path="/dashboard"
-  element={isLoggedIn ? <Dashboard /> : <Navigate to="/" replace />}
-/>
-    <Route path="/builder" element={<PromptBuilder />} />
-    <Route path="/library" element={<PromptLibrary />} />
-    <Route path="/library/:id" element={<PromptDetails />} />
-    <Route path="/playground" element={<Playground />} />
-    <Route path="/optimizer" element={<PromptOptimizer />} />
-    <Route path="/evaluator" element={<PromptEvaluator />} />
-    <Route path="/comparison" element={<ModelComparison />} />
-    <Route path="/versions" element={<VersionHistory />} />
-    <Route path="/version-history" element={<VersionHistory />} />
-    <Route path="/versionhistory" element={<VersionHistory />} />
-    <Route path="/analytics" element={<Analytics />} />
-    <Route path="/export-import" element={<ExportImport />} />
-    <Route path="/settings" element={<Settings />} />
-    <Route
-  path="/profile"
-  element={isLoggedIn ? <Profile /> : <Navigate to="/" replace />}
-/>
-  </Route>
-
-  <Route path="*" element={<Navigate to="/" replace />} />
-</Routes>
-      </BrowserRouter>
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </ToastProvider>
+    </AuthProvider>
   );
 }

@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,9 +13,7 @@ const [name, setName] = useState("");
 const handleLogin = (e) => {
   e.preventDefault();
    console.log("Sign In button clicked");
-  localStorage.setItem("userName", name);
-  localStorage.setItem("userEmail", email);
-  localStorage.setItem("isLoggedIn", "true");
+  login({ name, email });
 
   navigate("/dashboard");
 };
