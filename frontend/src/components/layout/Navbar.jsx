@@ -1,15 +1,24 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "../common/Icon";
 import { currentUser, notifications } from "../../data/dummyData";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const unread = notifications.filter((n) => n.unread).length;
+  const navigate = useNavigate();
+  const { userName, logout } = useAuth();
+
+const handleSignOut = () => {
+  logout();
+  navigate("/");
+};
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[var(--color-border-soft)] bg-[#0a0c14]/70 px-4 backdrop-blur-xl lg:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[var(--color-border-soft)] bg-[#0a0c14]/70 px-4 backdrop-blur-xl lg:gap-4 lg:px-6">
       <button
         onClick={onMenuClick}
         className="rounded-lg p-2 text-ink-dim hover:text-ink hover:bg-white/5 focus-ring lg:hidden"
@@ -17,25 +26,8 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
         <Icon name="menu" size={20} />
       </button>
 
-      <div className="hidden items-center gap-2 rounded-xl border border-[var(--color-border-soft)] bg-white/[0.03] px-3 py-2 text-sm text-ink-faint lg:flex lg:w-80">
-        <Icon name="search" size={16} />
-        <input
-          placeholder="Search prompts, projects, models…"
-          className="w-full bg-transparent outline-none placeholder:text-ink-faint text-ink"
-        />
-        <kbd className="rounded border border-[var(--color-border-soft)] px-1.5 py-0.5 text-[10px] text-ink-faint">
-          ⌘K
-        </kbd>
-      </div>
-
-      <div className="ml-auto flex items-center gap-2">
-        <button
-          onClick={onToggleTheme}
-          className="rounded-lg p-2.5 text-ink-dim hover:text-ink hover:bg-white/5 focus-ring"
-          aria-label="Toggle theme"
-        >
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
-        </button>
+      <div className="ml-auto flex items-center gap-2"> 
+        
 
         <div className="relative">
           <button
@@ -79,10 +71,10 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
             className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-white/5 focus-ring"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-semibold text-black">
-              {currentUser.avatarInitials}
+              {userName.charAt(0).toUpperCase()}s
             </div>
             <div className="hidden text-left leading-tight md:block">
-              <p className="text-xs font-medium text-ink">{currentUser.name}</p>
+              <p className="text-xs font-medium text-ink">{userName}</p>
               <p className="text-[10px] text-ink-faint">{currentUser.role}</p>
             </div>
             <Icon name="chevronDown" size={14} className="hidden text-ink-faint md:block" />
@@ -96,15 +88,21 @@ export default function Navbar({ onMenuClick, theme, onToggleTheme }) {
                 className="glass-hi absolute right-0 mt-2 w-52 rounded-2xl p-2 text-sm"
               >
                 <p className="px-3 py-2 text-xs text-ink-faint">{currentUser.org}</p>
-                <button className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5 hover:text-ink">
-                  Profile
-                </button>
+                <button
+  onClick={() => navigate("/profile")}
+  className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5"
+>
+  Profile
+</button>
                 <button className="w-full rounded-xl px-3 py-2 text-left text-ink-dim hover:bg-white/5 hover:text-ink">
                   Billing
                 </button>
-                <button className="w-full rounded-xl px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10">
-                  Sign out
-                </button>
+                <button
+  onClick={handleSignOut}
+  className="w-full rounded-xl px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10"
+>
+  Sign out
+</button>
               </motion.div>
             )}
           </AnimatePresence>
