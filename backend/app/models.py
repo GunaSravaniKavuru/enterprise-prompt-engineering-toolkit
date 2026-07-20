@@ -48,7 +48,6 @@ class Prompt(Base):
 
     owner = relationship("User", back_populates="prompts")
 
-    # Versions have no meaning without their parent prompt -> full cascade delete
     versions = relationship(
         "PromptVersion",
         back_populates="prompt",
@@ -56,7 +55,6 @@ class Prompt(Base):
         passive_deletes=True,
     )
 
-    # These feed analytics/history and should SURVIVE prompt deletion (prompt_id -> NULL)
     evaluations = relationship("Evaluation", back_populates="prompt", passive_deletes=True)
     optimizations = relationship("Optimization", back_populates="prompt", passive_deletes=True)
     comparison_runs = relationship("ComparisonRun", back_populates="prompt", passive_deletes=True)
@@ -97,7 +95,6 @@ class Evaluation(Base):
     __tablename__ = "evaluations"
 
     id = Column(Integer, primary_key=True, index=True)
-    # SET NULL on delete: evaluation history survives even if the prompt is later deleted
     prompt_id = Column(Integer, ForeignKey("prompts.id", ondelete="SET NULL"), nullable=True)
     overall_score = Column(Integer, nullable=False)
     metrics = Column(JSONB, nullable=False, default=list)
@@ -167,7 +164,6 @@ class ActivityLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     action = Column(String(40), nullable=False)
-    # SET NULL on delete: the log entry survives, target_title keeps it readable
     target_prompt_id = Column(Integer, ForeignKey("prompts.id", ondelete="SET NULL"), nullable=True)
     target_title = Column(String(200), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
