@@ -10,16 +10,18 @@ class GeminiServiceError(Exception):
     """Raised when a Gemini API call fails, so routers can catch it and return a clean HTTP error."""
     pass
 
-
 def _resolve_model_name(model_id: str) -> str:
     """
-    Strips the provider prefix from model IDs like 'gemini:3.5-flash'
-    so it becomes 'gemini-3.5-flash', the actual name the SDK expects.
+    Accept both old (gemini:2.5-flash) and new (gemini-2.5-flash) formats.
     """
+    if model_id.startswith("gemini-"):
+        return model_id
+
     if ":" in model_id:
         provider, name = model_id.split(":", 1)
         if provider == "gemini":
             return f"gemini-{name}"
+
     return model_id
 
 

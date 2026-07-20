@@ -13,6 +13,7 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     token = credentials.credentials
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -20,6 +21,11 @@ def get_current_user(
     )
 
     payload = decode_access_token(token)
+
+    # Debugging
+    print("TOKEN:", token)
+    print("PAYLOAD:", payload)
+
     if payload is None:
         raise credentials_exception
 
