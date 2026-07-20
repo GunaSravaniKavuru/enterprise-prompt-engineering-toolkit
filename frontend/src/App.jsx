@@ -1,66 +1,162 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import DashboardLayout from "./components/layout/DashboardLayout";
-import { ToastProvider } from "./components/common/Toast";
-import Profile from "./pages/Profile";
+import React, { useState } from "react";
+import { evaluatePrompt } from "./api";
+import "./App.css";
 
-import Dashboard from "./pages/Dashboard";
-import PromptBuilder from "./pages/PromptBuilder";
-import PromptLibrary from "./pages/PromptLibrary";
-import PromptDetails from "./pages/PromptDetails";
-import Playground from "./pages/Playground";
-import PromptOptimizer from "./pages/PromptOptimizer";
-import PromptEvaluator from "./pages/PromptEvaluator";
-import ModelComparison from "./pages/ModelComparison";
-import VersionHistory from "./pages/VersionHistory";
-import Analytics from "./pages/Analytics";
-import ExportImport from "./pages/ExportImport";
-import Settings from "./pages/Settings";
-import Login from "./pages/Login";
-import { AuthProvider, useAuth } from "./context/AuthContext";
 
-function AppRoutes() {
-  const { isLoggedIn } = useAuth();
+function App() {
+
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+
+  const testAPI = async () => {
+
+    setLoading(true);
+
+    try {
+
+      const response = await evaluatePrompt({
+
+        prompt_id: 1,
+
+        prompt_text:
+          "Explain Retrieval Augmented Generation in Large Language Models",
+
+        model_id:
+          "gemini-3"
+
+      });
+
+
+      setResult(response);
+
+    }
+
+    catch(error){
+
+      console.error(
+        "API Error:",
+        error
+      );
+
+    }
+
+    finally{
+
+      setLoading(false);
+
+    }
+
+  };
+
 
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route element={<DashboardLayout />}>
-        <Route
-          path="/dashboard"
-          element={isLoggedIn ? <Dashboard /> : <Navigate to="/" replace />}
-        />
-        <Route path="/builder" element={<PromptBuilder />} />
-        <Route path="/library" element={<PromptLibrary />} />
-        <Route path="/library/:id" element={<PromptDetails />} />
-        <Route path="/playground" element={<Playground />} />
-        <Route path="/optimizer" element={<PromptOptimizer />} />
-        <Route path="/evaluator" element={<PromptEvaluator />} />
-        <Route path="/comparison" element={<ModelComparison />} />
-        <Route path="/versions" element={<VersionHistory />} />
-        <Route path="/version-history" element={<VersionHistory />} />
-        <Route path="/versionhistory" element={<VersionHistory />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/export-import" element={<ExportImport />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route
-          path="/profile"
-          element={isLoggedIn ? <Profile /> : <Navigate to="/" replace />}
-        />
-      </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <div className="container">
+
+
+      <h1>
+        PromptOps Evaluation Dashboard
+      </h1>
+
+
+      <p>
+        AI Prompt Evaluation and LLM Monitoring Platform
+      </p>
+
+
+
+      <button
+        onClick={testAPI}
+      >
+
+        {
+          loading
+          ?
+          "Evaluating..."
+          :
+          "Test Backend API"
+        }
+
+      </button>
+
+
+
+      {
+        result &&
+
+        <div className="result-box">
+
+
+          <h2>
+            Evaluation Result
+          </h2>
+
+
+          <p>
+            <b>Prompt ID:</b>
+            {" "}
+            {result.prompt_id}
+          </p>
+
+
+          <p>
+            <b>Model:</b>
+            {" "}
+            {result.model_id}
+          </p>
+
+
+          <p>
+            <b>Input Tokens:</b>
+            {" "}
+            {result.input_tokens}
+          </p>
+
+
+          <p>
+            <b>Output Tokens:</b>
+            {" "}
+            {result.output_tokens}
+          </p>
+
+
+          <p>
+            <b>Total Tokens:</b>
+            {" "}
+            {result.total_tokens}
+          </p>
+
+
+          <p>
+            <b>Latency:</b>
+            {" "}
+            {result.latency_ms} ms
+          </p>
+
+
+          <h3>
+            Output
+          </h3>
+
+
+          <div className="output">
+
+            {result.output_text}
+
+          </div>
+
+
+        </div>
+
+      }
+
+
+    </div>
+
   );
+
 }
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
-  );
-}
+
+export default App;
