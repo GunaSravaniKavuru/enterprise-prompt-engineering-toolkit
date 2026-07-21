@@ -1,73 +1,121 @@
-import { useState } from "react";
-import Card from "../components/common/Card";
-import Button from "../components/common/Button";
-import Icon from "../components/common/Icon";
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import ExportCard from "../components/export-import/ExportCard";
+import ImportCard from "../components/export-import/ImportCard";
 import { useToast } from "../components/common/Toast";
+
+const formatBytes = (size) => {
+  if (size === undefined || size === null) return "—";
+  const value = Number(size);
+  if (!Number.isFinite(value)) return size;
+  const units = ["B", "KB", "MB", "GB"];
+  let index = 0;
+  let current = value;
+  while (current >= 1024 && index < units.length - 1) {
+    current /= 1024;
+    index += 1;
+  }
+  return `${current.toFixed(current >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+};
 
 export default function ExportImport() {
   const [dragOver, setDragOver] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState("JSON");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [validationState, setValidationState] = useState("");
+  const [validationMessage, setValidationMessage] = useState("");
+  const [importSummary, setImportSummary] = useState(null);
+  const fileInputRef = useRef(null);
   const showToast = useToast();
 
+  const handleFileSelection = (file) => {
+    if (!file) return;
+
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const supported = ["json", "md", "txt", "csv"];
+    const detectedFormat = extension === "json" ? "JSON" : extension === "md" ? "Markdown" : extension === "txt" ? "TXT" : extension === "csv" ? "CSV" : "Unsupported";
+
+    let nextState = "success";
+    let nextMessage = "Valid file detected. Prompt collection is ready for import.";
+
+    if (!supported.includes(extension)) {
+      nextState = "error";
+      nextMessage = "Unsupported format. Please upload JSON, Markdown, TXT, or CSV.";
+    } else if (file.size > 220000) {
+      nextState = "warning";
+      nextMessage = "Large file detected. Review prompt count before importing.";
+    }
+
+    setSelectedFile({
+      name: file.name,
+      size: formatBytes(file.size),
+      format: detectedFormat,
+      prompts: extension === "csv" ? 32 : extension === "md" ? 24 : 18,
+    });
+    setValidationState(nextState);
+    setValidationMessage(nextMessage);
+    setImportSummary(null);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setDragOver(false);
+    const file = event.dataTransfer.files?.[0];
+    handleFileSelection(file);
+  };
+
+  const handleBrowse = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleExport = () => {
+    showToast(`Exported ${selectedFormat.toLowerCase()} bundle`, "success");
+  };
+
+  const handleImport = () => {
+    if (!selectedFile) {
+      showToast("Select a file to import first", "warning");
+      return;
+    }
+
+    setImportSummary({ imported: 18, skipped: 2, failed: 0, duration: "1.4s", summary: "Prompt collection imported successfully with a few duplicates skipped." });
+    showToast("Import completed successfully", "success");
+  };
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-ink">Export / Import</h1>
-        <p className="mt-1 text-sm text-ink-dim">Move prompts in and out of the toolkit.</p>
+    <div className="mx-auto w-full max-w-7xl space-y-6 pb-8">
+      <motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="sticky top-0 z-20 -mx-2 rounded-3xl border border-white/10 bg-[rgba(10,12,20,0.8)]/80 px-4 py-4 backdrop-blur-xl sm:px-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300/80">Export / Import</p>
+        <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Move prompt collections with confidence</h1>
+        <p className="mt-2 max-w-2xl text-sm text-ink-dim">Package, validate, and bring prompts into the workspace through a clean, cloud-inspired workflow.</p>
+      </motion.header>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ExportCard selectedFormat={selectedFormat} onFormatChange={setSelectedFormat} promptCount={124} estimatedSize="2.4 MB" onExport={handleExport} />
+        <ImportCard
+          dragOver={dragOver}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          onBrowse={handleBrowse}
+          selectedFile={selectedFile}
+          validationState={validationState}
+          validationMessage={validationMessage}
+          importSummary={importSummary}
+          onImport={handleImport}
+        />
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
-        <Card className="p-6">
-          <h2 className="font-display text-sm font-semibold text-ink">Import Prompts</h2>
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); showToast("File received (demo only)"); }}
-            className={`mt-4 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-14 text-center transition-colors ${
-              dragOver ? "border-violet-400/60 bg-violet-500/5" : "border-[var(--color-border-soft)]"
-            }`}
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-400/20">
-              <Icon name="upload" size={22} className="text-violet-300" />
-            </div>
-            <p className="text-sm text-ink">Drag and drop a .json or .csv file here</p>
-            <p className="text-xs text-ink-faint">or</p>
-            <Button variant="secondary" size="sm" onClick={() => showToast("Browse dialog would open here")}>
-              Browse Files
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="font-display text-sm font-semibold text-ink">Export Prompts</h2>
-          <p className="mt-2 text-sm text-ink-dim">Export your entire library or a selected set of prompts.</p>
-          <div className="mt-6 space-y-3">
-            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border-soft)] px-4 py-3.5">
-              <div className="flex items-center gap-3">
-                <Icon name="file" size={18} className="text-cyan-300" />
-                <div>
-                  <p className="text-sm text-ink">Export as JSON</p>
-                  <p className="text-xs text-ink-faint">Full fidelity, best for re-importing</p>
-                </div>
-              </div>
-              <Button variant="secondary" size="sm" icon="download" onClick={() => showToast("Exported library.json")}>
-                Export
-              </Button>
-            </div>
-            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border-soft)] px-4 py-3.5">
-              <div className="flex items-center gap-3">
-                <Icon name="file" size={18} className="text-rose-300" />
-                <div>
-                  <p className="text-sm text-ink">Export as PDF</p>
-                  <p className="text-xs text-ink-faint">Readable report, good for sharing</p>
-                </div>
-              </div>
-              <Button variant="secondary" size="sm" icon="download" onClick={() => showToast("Exported library.pdf")}>
-                Export
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,.md,.txt,.csv"
+        hidden
+        onChange={(event) => handleFileSelection(event.target.files?.[0])}
+      />
     </div>
   );
 }

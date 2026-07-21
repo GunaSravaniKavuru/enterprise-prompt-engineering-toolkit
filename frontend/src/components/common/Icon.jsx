@@ -5,6 +5,7 @@ import {
   FiStar, FiCopy, FiEdit3, FiTrash2, FiEye, FiFilter, FiPlus,
   FiX, FiCheck, FiUpload, FiDownload, FiFileText, FiRotateCcw,
   FiPlay, FiTrendingUp, FiTrendingDown, FiChevronRight, FiMenu,
+  FiRefreshCw,
 } from "react-icons/fi";
 
 const map = {
@@ -43,6 +44,7 @@ const map = {
   up: FiTrendingUp,
   down: FiTrendingDown,
   menu: FiMenu,
+  refresh: FiRefreshCw,
 };
 
 export default function Icon({ name, className = "", size = 18 }) {
