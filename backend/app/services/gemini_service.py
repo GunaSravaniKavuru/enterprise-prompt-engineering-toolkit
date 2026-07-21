@@ -25,7 +25,7 @@ def _resolve_model_name(model_id: str) -> str:
     return model_id
 
 
-def ask_gemini(prompt_text: str, model_id: str = "gemini:3.5-flash") -> dict:
+def ask_gemini(prompt_text: str, model_id: str = "gemini-3.1-flash-lite") -> dict:
     """
     The ONE shared function every feature calls to talk to Gemini.
     Returns a dict with the response text plus usage metadata.
@@ -34,13 +34,22 @@ def ask_gemini(prompt_text: str, model_id: str = "gemini:3.5-flash") -> dict:
     model_name = _resolve_model_name(model_id)
 
     start = time.time()
+
     try:
         response = _client.models.generate_content(
             model=model_name,
             contents=prompt_text,
         )
+
+        print("\n===== RAW GEMINI RESPONSE =====")
+        print(response)
+        print("===============================\n")
+
     except Exception as e:
-        raise GeminiServiceError(f"Gemini API call failed for model '{model_id}': {e}") from e
+        print("Gemini Exception:", e)
+        raise GeminiServiceError(
+            f"Gemini API call failed for model '{model_id}': {e}"
+        ) from e
 
     elapsed_ms = int((time.time() - start) * 1000)
     usage = response.usage_metadata
