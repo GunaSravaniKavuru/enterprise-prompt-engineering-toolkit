@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app import models  # noqa: F401 — import so all tables are registered with Base
 from app.routers import auth
+from app.routers import library
+from app.routers import builder
 
 app = FastAPI(title="Enterprise Prompt Engineering Toolkit API")
 
@@ -15,6 +17,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/auth")
+app.include_router(library.router, prefix="/api/library")
+app.include_router(builder.router, prefix="/api/builder")
 
 @app.on_event("startup")
 def on_startup():
