@@ -34,15 +34,16 @@ export function AuthProvider({ children }) {
     window.localStorage.setItem("userEmail", email);
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    setUserName("");
-    setUserEmail("");
+ const logout = () => {
+  setIsLoggedIn(false);
+  setUserName("");
+  setUserEmail("");
 
-    window.localStorage.removeItem("isLoggedIn");
-    window.localStorage.removeItem("userName");
-    window.localStorage.removeItem("userEmail");
-  };
+  window.localStorage.removeItem("isLoggedIn");
+  window.localStorage.removeItem("userName");
+  window.localStorage.removeItem("userEmail");
+  window.localStorage.removeItem("access_token");
+};
 
   const value = useMemo(
     () => ({

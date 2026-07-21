@@ -1,5 +1,7 @@
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,35 +18,66 @@ class PlaygroundRunRequest:
     pass
 
 
-from pydantic import BaseModel
-
 class PlaygroundRunCreate(BaseModel):
     prompt_id: Optional[int] = None
-    model_used: str = "gemini:2.5-flash"
-    input_text: str
+    model_used: str = "gemini:2.5-flash-lite"
+    input_text: str = Field(..., min_length=1, max_length=10000)
+
+    @field_validator("input_text")
+    @classmethod
+    def validate_input(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Input prompt cannot be empty.")
+        return value
 
 
-@router.post("/run", response_model=PlaygroundRunResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/run",
+    response_model=PlaygroundRunResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def run_playground_prompt(
     payload: PlaygroundRunCreate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     """
-    Executes a prompt using the Gemini API, stores the run, and returns the result.
+    Executes a prompt using the Gemini API, stores the run,
+    and returns the result.
     """
+
+    final_prompt = payload.input_text
+
     if payload.prompt_id is not None:
-        existing_prompt = db.query(Prompt).filter(Prompt.id == payload.prompt_id).first()
+        existing_prompt = (
+            db.query(Prompt)
+            .filter(Prompt.id == payload.prompt_id)
+            .first()
+        )
+
         if existing_prompt is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Prompt with ID {payload.prompt_id} not found.",
             )
 
+        final_prompt = f"""{existing_prompt.content}
+
+User Request:
+{payload.input_text}
+"""
+
     try:
-        gemini_result = ask_gemini(payload.input_text, model_id=payload.model_used)
+        gemini_result = ask_gemini(
+            final_prompt,
+            model_id=payload.model_used,
+        )
     except GeminiServiceError as e:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(e),
+        )
 
     new_run = PlaygroundRun(
         prompt_id=payload.prompt_id,

@@ -2,20 +2,34 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-const handleLogin = (e) => {
+const handleLogin = async (e) => {
   e.preventDefault();
-   console.log("Sign In button clicked");
-  login({ name, email });
 
-  navigate("/dashboard");
+  try {
+    const response = await api.post("/auth/login", {
+      email,
+      password,
+    });
+
+    localStorage.setItem("access_token", response.data.access_token);
+
+    login({
+  name: email,
+  email,
+});
+
+    navigate("/dashboard");
+  } catch (error) {
+    alert(error.response?.data?.detail || "Invalid email or password");
+  }
 };
   return (
     <div className="min-h-screen bg-[#0B1120] flex items-center justify-center px-6 py-10">
@@ -63,20 +77,7 @@ const handleLogin = (e) => {
                 className="mt-10 space-y-6"
               >
 {/* Name */}
-<div>
-  <label className="block text-sm text-slate-300 mb-2">
-    Name
-  </label>
 
-  <input
-    type="text"
-    placeholder="Enter your name"
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    required
-    className="w-full rounded-xl border border-slate-700 bg-[#1E293B] px-4 py-3 text-white placeholder-slate-400 focus:border-cyan-400 focus:outline-none"
-  />
-</div>
                 {/* Email */}
 
                 <div>
@@ -141,6 +142,17 @@ const handleLogin = (e) => {
                 >
                   Sign In
                 </button>
+
+                <p className="text-center text-sm text-slate-400">
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/register")}
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    Register
+                  </button>
+                </p>
 
               </form>
 

@@ -1,3 +1,4 @@
+import api from "../services/api";
 import { useState } from "react";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -13,15 +14,34 @@ export default function Playground() {
   const [output, setOutput] = useState("");
   const [running, setRunning] = useState(false);
 
-  const run = () => {
-    setRunning(true);
-    setOutput("");
-    setTimeout(() => {
-      setOutput(dummyOutput);
-      setRunning(false);
-    }, 1200);
-  };
+ const run = async () => {
+  setRunning(true);
+  setOutput("");
 
+  try {
+    const token = localStorage.getItem("token");
+
+const response = await api.post(
+  "/playground/run",
+  {
+    input_text: input,
+    model_used: "gemini:2.5-flash-lite",
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+    setOutput(response.data.output_text);
+  } catch (error) {
+    console.error(error);
+    setOutput("Failed to generate response.");
+  } finally {
+    setRunning(false);
+  }
+};
   const geminiModel = aiModels.filter(
   (model) => model.id === "gemini"
 );

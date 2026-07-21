@@ -16,6 +16,7 @@ import Analytics from "./pages/Analytics";
 import ExportImport from "./pages/ExportImport";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 function AppRoutes() {
@@ -23,12 +24,19 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
-      <Route element={<DashboardLayout />}>
-        <Route
-          path="/dashboard"
-          element={isLoggedIn ? <Dashboard /> : <Navigate to="/" replace />}
-        />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+  element={
+    isLoggedIn ? (
+      <DashboardLayout />
+    ) : (
+      <Navigate to="/login" replace />
+    )
+  }
+>
+       <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/builder" element={<PromptBuilder />} />
         <Route path="/library" element={<PromptLibrary />} />
         <Route path="/library/:id" element={<PromptDetails />} />
@@ -42,13 +50,10 @@ function AppRoutes() {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/export-import" element={<ExportImport />} />
         <Route path="/settings" element={<Settings />} />
-        <Route
-          path="/profile"
-          element={isLoggedIn ? <Profile /> : <Navigate to="/" replace />}
-        />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

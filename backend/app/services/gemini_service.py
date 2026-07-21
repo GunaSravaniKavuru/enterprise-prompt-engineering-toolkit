@@ -1,18 +1,21 @@
 import time
 from google import genai
-from google.genai import types
 from app.core.config import settings
 
+# Create Gemini client
 _client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
 class GeminiServiceError(Exception):
-    """Raised when a Gemini API call fails, so routers can catch it and return a clean HTTP error."""
+    """Raised when a Gemini API call fails."""
     pass
+
 
 def _resolve_model_name(model_id: str) -> str:
     """
-    Accept both old (gemini:2.5-flash) and new (gemini-2.5-flash) formats.
+    Accept both:
+      gemini:2.5-flash-lite
+      gemini-2.5-flash-lite
     """
     if model_id.startswith("gemini-"):
         return model_id
@@ -25,31 +28,49 @@ def _resolve_model_name(model_id: str) -> str:
     return model_id
 
 
-def ask_gemini(prompt_text: str, model_id: str = "gemini:3.5-flash") -> dict:
+def ask_gemini(prompt_text: str, model_id: str = "gemini:2.5-flash-lite") -> dict:
     """
-    The ONE shared function every feature calls to talk to Gemini.
-    Returns a dict with the response text plus usage metadata.
-    Raises GeminiServiceError if the call fails.
+    Shared Gemini call used across the project.
+    Returns:
+        {
+            text,
+            model,
+            response_time_ms,
+            input_tokens,
+            output_tokens,
+            total_tokens
+        }
     """
     model_name = _resolve_model_name(model_id)
 
     start = time.time()
+
     try:
         response = _client.models.generate_content(
             model=model_name,
             contents=prompt_text,
         )
+
     except Exception as e:
-        raise GeminiServiceError(f"Gemini API call failed for model '{model_id}': {e}") from e
+        import traceback
+
+        print("\n========== GEMINI ERROR ==========")
+        traceback.print_exc()
+        print("==================================\n")
+
+        raise GeminiServiceError(
+            f"Gemini API call failed for model '{model_name}': {str(e)}"
+        ) from e
 
     elapsed_ms = int((time.time() - start) * 1000)
-    usage = response.usage_metadata
+
+    usage = getattr(response, "usage_metadata", None)
 
     return {
-        "text": response.text,
-        "model": model_id,
+        "text": getattr(response, "text", ""),
+        "model": model_name,
         "response_time_ms": elapsed_ms,
-        "input_tokens": getattr(usage, "prompt_token_count", None),
-        "output_tokens": getattr(usage, "candidates_token_count", None),
-        "total_tokens": getattr(usage, "total_token_count", None),
+        "input_tokens": getattr(usage, "prompt_token_count", 0) if usage else 0,
+        "output_tokens": getattr(usage, "candidates_token_count", 0) if usage else 0,
+        "total_tokens": getattr(usage, "total_token_count", 0) if usage else 0,
     }
