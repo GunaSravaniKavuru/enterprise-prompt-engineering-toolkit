@@ -41,10 +41,19 @@ class Prompt(Base):
     content = Column(Text, nullable=False)
     technique = Column(String(40), nullable=True)
     output_format = Column(String(80), nullable=True)
+
+    # Store the complete Prompt Builder form
+    form_data = Column(JSONB, nullable=True, default=dict)
+
     favorite = Column(Boolean, nullable=False, default=False)
     score = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
 
     owner = relationship("User", back_populates="prompts")
 

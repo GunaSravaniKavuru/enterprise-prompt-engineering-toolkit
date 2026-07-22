@@ -25,7 +25,7 @@ const response = await api.post(
   "/playground/run",
   {
     input_text: input,
-    model_used: "gemini:2.5-flash-lite",
+    model_used: "gemini:3.5-flash",
   },
   {
     headers: {
@@ -36,9 +36,15 @@ const response = await api.post(
 
     setOutput(response.data.output_text);
   } catch (error) {
-    console.error(error);
-    setOutput("Failed to generate response.");
-  } finally {
+  console.error("FULL ERROR:", error);
+
+  if (error.response) {
+    console.log("Status:", error.response.status);
+    console.log("Data:", error.response.data);
+  }
+
+  setOutput(JSON.stringify(error.response?.data || error.message, null, 2));
+} finally {
     setRunning(false);
   }
 };

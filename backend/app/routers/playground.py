@@ -20,7 +20,7 @@ class PlaygroundRunRequest:
 
 class PlaygroundRunCreate(BaseModel):
     prompt_id: Optional[int] = None
-    model_used: str = "gemini:2.5-flash-lite"
+    model_used: str = "gemini:3.5-flash"
     input_text: str = Field(..., min_length=1, max_length=10000)
 
     @field_validator("input_text")
@@ -90,7 +90,14 @@ User Request:
     )
 
     db.add(new_run)
+    print("Before commit")
+
     db.commit()
+    print("After commit")
+
     db.refresh(new_run)
+    print("After refresh")
+
+    print("Returning response")
 
     return new_run

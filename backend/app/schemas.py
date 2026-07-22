@@ -40,6 +40,7 @@ class PromptCreate(BaseModel):
     content: str
     technique: Optional[str] = None
     output_format: Optional[str] = None
+    form_data: Dict[str, Any] = Field(default_factory=dict)
 
 class PromptUpdate(BaseModel):
     title: Optional[str] = None
@@ -48,6 +49,7 @@ class PromptUpdate(BaseModel):
     content: Optional[str] = None
     technique: Optional[str] = None
     output_format: Optional[str] = None
+    form_data: Optional[Dict[str, Any]] = None
     favorite: Optional[bool] = None
 
 class PromptResponse(BaseModel):
@@ -59,6 +61,9 @@ class PromptResponse(BaseModel):
     content: str
     technique: Optional[str] = None
     output_format: Optional[str] = None
+
+    form_data: Dict[str, Any] = Field(default_factory=dict)
+    
     favorite: bool
     score: Optional[int] = None
     created_at: datetime

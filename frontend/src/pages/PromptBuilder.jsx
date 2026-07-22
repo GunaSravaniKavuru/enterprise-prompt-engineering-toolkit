@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { api } from "../services/api";
+import { useState, useEffect } from "react";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
 import Badge from "../components/common/Badge";
 import Icon from "../components/common/Icon";
 import { Input, Select, Textarea } from "../components/common/Input";
 import { useToast } from "../components/common/Toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const promptingTechniques = ["Standard", "Few-shot"];
 
@@ -156,6 +157,24 @@ export default function PromptBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
   const showToast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditMode = location.state?.mode === "edit";
+const editPrompt = location.state?.prompt;
+
+useEffect(() => {
+  console.log("Edit Prompt:", editPrompt);
+
+  if (!isEditMode || !editPrompt) return;
+
+  if (editPrompt.form_data) {
+    setForm({
+      ...initialState,
+      ...editPrompt.form_data,
+    });
+
+    setGeneratedPrompt(editPrompt.content || "");
+  }
+}, [isEditMode, editPrompt]);
 
   const updateField = (key) => (event) => {
     setForm((current) => ({ ...current, [key]: event.target.value }));
@@ -191,26 +210,58 @@ export default function PromptBuilder() {
   };
 
   const handleGeneratePrompt = async () => {
-    if (isGenerating) return;
+  if (isGenerating) return;
 
-    const promptSnapshot = buildGeneratedPrompt(form);
-    setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setGeneratedPrompt(promptSnapshot);
+  setIsGenerating(true);
+
+  try {
+    const response = await api.post("/builder/generate", form);
+
+    setGeneratedPrompt(response.data.generated_prompt);
+    showToast("Prompt generated successfully!");
+  } catch (error) {
+    console.error("Generate Prompt Error:", error);
+    showToast("Failed to generate prompt.");
+  } finally {
     setIsGenerating(false);
+  }
+};
+
+  const savePrompt = async () => {
+  if (!generatedPrompt) return;
+
+  if (!form.promptName?.trim()) {
+    showToast("Please enter a prompt name");
+    return;
+  }
+
+  const payload = {
+    title: form.promptName.trim(),
+    category: form.category,
+    tags: [],
+    content: generatedPrompt,
+    technique: form.technique,
+    output_format: form.outputFormat,
+    form_data: form,
   };
 
-  const savePrompt = () => {
-    if (!generatedPrompt) return;
+  try {
+    if (isEditMode) {
+      await api.put(`/library/${editPrompt.id}`, payload);
 
-    if (!form.promptName?.trim()) {
-      showToast("Please enter a prompt name");
-      return;
+      showToast(`Prompt "${form.promptName}" updated successfully`);
+    } else {
+      await api.post("/library", payload);
+
+      showToast(`Prompt "${form.promptName}" saved successfully`);
     }
 
-    showToast(`Prompt "${form.promptName}" saved to library`);
-  };
-
+    navigate("/library");
+  } catch (error) {
+    console.error("Save Prompt Error:", error);
+    showToast("Failed to save prompt.");
+  }
+};
   const copyPrompt = async () => {
     if (!generatedPrompt) return;
 
@@ -571,9 +622,15 @@ export default function PromptBuilder() {
                     title="Copy prompt"
                     aria-label="Copy prompt"
                   />
-                  <Button size="sm" icon="check" onClick={savePrompt} disabled={!hasGeneratedPrompt} className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-3 text-[11px] sm:text-xs">
-                    Save Prompt
-                  </Button>
+                  <Button
+  size="sm"
+  icon="check"
+  onClick={savePrompt}
+  disabled={!hasGeneratedPrompt}
+  className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-3 text-[11px] sm:text-xs"
+>
+  {isEditMode ? "Update Prompt" : "Save Prompt"}
+</Button>
                   <Button size="sm" icon="gauge" onClick={evaluatePrompt} disabled={!hasGeneratedPrompt} className="h-9 min-w-0 flex-1 basis-0 whitespace-nowrap px-3 text-[11px] sm:text-xs">
                     Evaluate
                   </Button>

@@ -28,7 +28,7 @@ def _resolve_model_name(model_id: str) -> str:
     return model_id
 
 
-def ask_gemini(prompt_text: str, model_id: str = "gemini:2.5-flash-lite") -> dict:
+def ask_gemini(prompt_text: str, model_id: str = "gemini-3.6-flash") -> dict:
 
     """
     Shared Gemini call used across the project.

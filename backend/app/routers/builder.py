@@ -41,9 +41,13 @@ class BuilderResponse(BaseModel):
 
 @router.post("/generate", response_model=BuilderResponse)
 def generate(
-      request: BuilderRequest,
-      current_user: User = Depends(get_current_user),
-  ):
-      result = generate_prompt(request.model_dump(exclude_none=True))
-      return BuilderResponse(generated_prompt=result["text"])
+    request: BuilderRequest,
+    current_user: User = Depends(get_current_user),
+):
+    result = generate_prompt(request.model_dump(exclude_none=True))
 
+    print("\n========== GEMINI GENERATED ==========")
+    print(result["text"])
+    print("======================================\n")
+
+    return BuilderResponse(generated_prompt=result["text"])

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -15,25 +16,8 @@ const sortOptions = [
   { value: "oldest", label: "Oldest Updated" },
 ];
 
-const STORAGE_KEY = "prompt-library-prompts";
 
-const getInitialPrompts = () => {
-  if (typeof window === "undefined") return promptLibrary;
 
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  if (!saved) return promptLibrary;
-
-  try {
-    const parsed = JSON.parse(saved);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-  } catch {
-    return promptLibrary;
-  }
-
-  return promptLibrary;
-};
 
 const getEmptyForm = () => ({
   title: "",
@@ -49,16 +33,22 @@ export default function PromptLibrary() {
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("updated");
   const [favOnly, setFavOnly] = useState(false);
-  const [prompts, setPrompts] = useState(getInitialPrompts);
+  const [prompts, setPrompts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState(getEmptyForm);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+useEffect(() => {
+  const loadPrompts = async () => {
+    try {
+      const response = await api.get("/library");
+      setPrompts(response.data);
+    } catch (error) {
+      console.error("Failed to load prompts:", error);
     }
-  }, [prompts]);
+  };
 
+  loadPrompts();
+}, []);
+  
   const filtered = useMemo(() => {
     let items = prompts.filter((p) => {
       const matchesQuery =

@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { api } from "../../services/api";
 import Card from "../common/Card";
 import Badge from "../common/Badge";
 import Icon from "../common/Icon";
@@ -18,7 +20,7 @@ const categoryTone = {
 
 export default function PromptCard({ prompt, index = 0, compact = false, onClick }) {
   const showToast = useToast();
-
+  const navigate = useNavigate();
   const handleKeyDown = (event) => {
     if ((event.key === "Enter" || event.key === " ") && onClick) {
       event.preventDefault();
@@ -71,55 +73,92 @@ export default function PromptCard({ prompt, index = 0, compact = false, onClick
 
         <div className="mt-auto flex items-center gap-1 pt-4 opacity-0 transition-opacity group-hover:opacity-100">
           <button
-            onClick={(event) => {
-              event.stopPropagation();
-              showToast(`Marked "${prompt.title}" as favorite`);
-            }}
-            className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-amber-300 focus-ring"
-            title="Favorite"
-          >
-            <Icon name="star" size={15} />
-          </button>
+  onClick={async (event) => {
+    event.stopPropagation();
+
+    try {
+      await api.patch(`/library/${prompt.id}/favorite`);
+
+      showToast(
+        prompt.favorite
+          ? `"${prompt.title}" removed from favorites`
+          : `"${prompt.title}" added to favorites`
+      );
+
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to update favorite");
+    }
+  }}
+  className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-amber-300 focus-ring"
+  title="Favorite"
+>
+  <Icon
+    name="star"
+    size={15}
+    className={
+      prompt.favorite
+        ? "text-amber-400 fill-current"
+        : ""
+    }
+  />
+</button>
           <button
-            onClick={(event) => {
-              event.stopPropagation();
-              showToast(`Duplicated "${prompt.title}"`);
-            }}
-            className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-ink focus-ring"
-            title="Duplicate"
-          >
-            <Icon name="copy" size={15} />
-          </button>
+  onClick={async (event) => {
+    event.stopPropagation();
+
+    try {
+      await navigator.clipboard.writeText(prompt.content);
+      showToast(`Copied "${prompt.title}"`);
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to copy prompt");
+    }
+  }}
+  className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-ink focus-ring"
+  title="Copy Prompt"
+>
+  <Icon name="copy" size={15} />
+</button>
           <button
-            onClick={(event) => {
-              event.stopPropagation();
-              showToast(`Opened editor for "${prompt.title}"`);
-            }}
-            className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-ink focus-ring"
-            title="Edit"
-          >
-            <Icon name="edit" size={15} />
-          </button>
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              showToast(`Preview: "${prompt.title}"`);
-            }}
-            className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-ink focus-ring"
-            title="Preview"
-          >
-            <Icon name="eye" size={15} />
-          </button>
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              showToast(`Deleted "${prompt.title}"`, "rose");
-            }}
-            className="ml-auto rounded-lg p-2 text-ink-faint hover:bg-rose-500/10 hover:text-rose-300 focus-ring"
-            title="Delete"
-          >
-            <Icon name="trash" size={15} />
-          </button>
+  onClick={(event) => {
+    event.stopPropagation();
+
+    navigate("/builder", {
+      state: {
+        mode: "edit",
+        prompt,
+      },
+    });
+  }}
+  className="rounded-lg p-2 text-ink-faint hover:bg-white/5 hover:text-ink focus-ring"
+  title="Edit"
+>
+  <Icon name="edit" size={15} />
+</button>
+                  <button
+  onClick={async (event) => {
+    event.stopPropagation();
+
+    if (!window.confirm(`Delete "${prompt.title}"?`)) return;
+
+    try {
+      await api.delete(`/library/${prompt.id}`);
+
+      showToast(`Deleted "${prompt.title}"`);
+
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to delete prompt");
+    }
+  }}
+  className="ml-auto rounded-lg p-2 text-ink-faint hover:bg-rose-500/10 hover:text-rose-300 focus-ring"
+  title="Delete"
+>
+  <Icon name="trash" size={15} />
+</button>
         </div>
       </Card>
     </motion.div>

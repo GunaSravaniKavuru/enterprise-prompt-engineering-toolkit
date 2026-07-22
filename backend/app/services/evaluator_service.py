@@ -38,9 +38,13 @@ Prompt to Evaluate:
     try:
         response = ask_gemini(final_prompt)
 
-        print("\n===== GEMINI RESPONSE =====")
-        print(response["text"])
-        print("===========================\n")
+        print("\n===== COMPLETE RESPONSE =====")
+        print(response)
+        print("=============================\n")
+
+        print("\n===== GEMINI TEXT =====")
+        print(response.get("text"))
+        print("=======================\n")
 
     except GeminiServiceError:
         raise
