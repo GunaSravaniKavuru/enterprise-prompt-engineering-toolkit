@@ -1,5 +1,5 @@
 import os
-import re
+import json
 
 from app.services.gemini_service import ask_gemini
 
@@ -34,24 +34,38 @@ User Prompt:
 {original_prompt}
 """
 
+    print("\n========== FINAL PROMPT ==========")
+    print(final_prompt)
+    print("==================================\n")
+
     response = ask_gemini(final_prompt)
 
-    optimized_text = response["text"].strip()
+    try:
+        data = json.loads(response["text"])
+    except json.JSONDecodeError:
+        print("\n===== INVALID GEMINI RESPONSE =====")
+        print(response["text"])
+        print("==================================\n")
 
-    summary = [
-        "Improved prompt clarity.",
-        "Added missing context.",
-        "Specified AI role.",
-        "Defined expected output format."
+        raise ValueError(
+            "Gemini returned an invalid response. Please try again."
+        )
+
+    required_fields = [
+        "optimized_prompt",
+        "summary",
+        "score_before",
+        "score_after",
     ]
 
-    score_before = 60
-    score_after = 92
+    for field in required_fields:
+        if field not in data:
+            raise ValueError(f"Missing required field: {field}")
 
     return {
         "original_content": original_prompt,
-        "optimized_content": optimized_text,
-        "summary": summary,
-        "score_before": score_before,
-        "score_after": score_after,
+        "optimized_content": data["optimized_prompt"],
+        "summary": data["summary"],
+        "score_before": data["score_before"],
+        "score_after": data["score_after"],
     }

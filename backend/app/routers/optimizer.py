@@ -23,8 +23,6 @@ def optimize(
         summary=result["summary"],
         score_before=result["score_before"],
         score_after=result["score_after"],
-
-        # Temporary value until authentication is connected
         created_by=1,
     )
 

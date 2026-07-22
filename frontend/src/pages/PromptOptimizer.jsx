@@ -4,33 +4,54 @@ import Card from "../components/common/Card";
 import Button from "../components/common/Button";
 import Icon from "../components/common/Icon";
 import QualityRing from "../components/common/QualityRing";
-import { optimizerExample } from "../data/dummyData";
+import api from "../services/api";
 import { useToast } from "../components/common/Toast";
 
 export default function PromptOptimizer() {
-  const { original, optimized, summary, scoreBefore, scoreAfter } = optimizerExample;
-  const [originalPrompt, setOriginalPrompt] = useState(original);
+  const [optimizationResult, setOptimizationResult] = useState(null);
+  const [originalPrompt, setOriginalPrompt] = useState("");
   const [optimizedPrompt, setOptimizedPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGeneratedState, setShowGeneratedState] = useState(false);
+  const scoreBefore = optimizationResult?.score_before || 0;
+  const scoreAfter = optimizationResult?.score_after || 0;
+  const summary = optimizationResult?.summary || [];
   const showToast = useToast();
 
   const handleGeneratePrompt = async () => {
-    if (!originalPrompt.trim() || isGenerating) return;
+  if (!originalPrompt.trim() || isGenerating) return;
 
+  try {
     setIsGenerating(true);
     setShowGeneratedState(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 900));
+    const response = await api.post("/optimizer", {
+      prompt_id: null,
+      original_content: originalPrompt.trim(),
+    });
 
-    setOptimizedPrompt(optimized);
-    setIsGenerating(false);
+    setOptimizationResult(response.data);
+    setOptimizedPrompt(response.data.optimized_content);
+
     setShowGeneratedState(true);
 
     setTimeout(() => {
       setShowGeneratedState(false);
     }, 1000);
-  };
+  } catch (error) {
+  console.error("Optimization failed:", error);
+
+  if (error.response) {
+    console.error("Response:", error.response.data);
+  }
+
+  showToast(
+    error.response?.data?.detail || "Failed to optimize prompt."
+  );
+} finally {
+  setIsGenerating(false);
+}
+};
 
   const handleCopy = async () => {
     if (!optimizedPrompt) return;

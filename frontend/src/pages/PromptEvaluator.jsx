@@ -47,7 +47,10 @@ export default function PromptEvaluator() {
     setErrorMessage("");
   };
 
-  const showResults = !loading && !errorMessage;
+ const showResults =
+  !loading &&
+  !errorMessage &&
+  evaluationResult !== null;
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
