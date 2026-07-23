@@ -8,11 +8,16 @@ export const api = axios.create({
   },
 });
 
-// Automatically attach JWT token to every request
+// Automatically ensure endpoints end with a trailing slash to avoid 307/308 redirects
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
+    // Append a trailing slash to URL if it doesn't already have one (and ignores query params)
+    if (config.url && !config.url.includes("?") && !config.url.endsWith("/")) {
+      config.url += "/";
+    }
 
+    // Automatically attach JWT token to every request
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
