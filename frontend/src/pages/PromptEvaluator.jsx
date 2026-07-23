@@ -26,12 +26,10 @@ export default function PromptEvaluator() {
     try {
       setLoading(true);
       setErrorMessage("");
-
-      const response = await api.post("/evaluator", {
-        prompt_id: prompt?.id || null,
-        content: customPrompt.trim(),
-      });
-
+const response = await api.post("/evaluator/", {
+  prompt_id: prompt?.id || null,
+  content: customPrompt.trim(),
+});
       setEvaluationResult(response.data);
     } catch (error) {
       console.error("Evaluation failed:", error);
