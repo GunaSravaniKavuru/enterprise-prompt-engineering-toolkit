@@ -6,8 +6,7 @@ import Button from "../components/common/Button";
 import Icon from "../components/common/Icon";
 import Modal from "../components/common/Modal";
 import PromptCard from "../components/prompt/PromptCard";
-import { promptLibrary, categories } from "../data/dummyData";
-
+import { categories } from "../data/dummyData";
 const sortOptions = [
   { value: "updated", label: "Recently Updated" },
   { value: "score", label: "Highest Score" },
@@ -39,11 +38,12 @@ export default function PromptLibrary() {
 useEffect(() => {
   const loadPrompts = async () => {
     try {
-      const response = awaitapi.get("/library/");
+      const response = await api.get("/library/");
       setPrompts(response.data);
     } catch (error) {
-      console.error("Failed to load prompts:", error);
-    }
+  console.error(error);
+  alert(JSON.stringify(error.response?.data || error.message));
+}
   };
 
   loadPrompts();
