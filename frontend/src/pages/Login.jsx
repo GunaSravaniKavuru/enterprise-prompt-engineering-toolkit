@@ -33,9 +33,20 @@ const handleLogin = async (e) => {
     });
 
     navigate("/dashboard");
-  } catch (error) {
-    alert(error.response?.data?.detail || "Invalid email or password");
+  } } catch (error) {
+  const detail = error.response?.data?.detail;
+  
+  if (typeof detail === "string") {
+    alert(detail);
+  } else if (Array.isArray(detail)) {
+    // If FastAPI returns a validation array, show the first message
+    alert(detail[0]?.msg || "Invalid request parameters");
+  } else if (typeof detail === "object") {
+    alert(JSON.stringify(detail));
+  } else {
+    alert("Invalid email or password");
   }
+}
 };
   return (
     <div className="min-h-screen bg-[#0B1120] flex items-center justify-center px-6 py-10">
