@@ -17,7 +17,10 @@ from app.routers import (
     evaluator,
 )
 
-app = FastAPI(title="Enterprise Prompt Engineering Toolkit API")
+app = FastAPI(
+    title="Enterprise Prompt Engineering Toolkit API",
+    redirect_slashes=False,
+)
 
 app.add_middleware(
     CORSMiddleware,

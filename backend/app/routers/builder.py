@@ -40,6 +40,7 @@ class BuilderResponse(BaseModel):
 
 
 @router.post("/generate", response_model=BuilderResponse)
+@router.post("/generate/", response_model=BuilderResponse)
 def generate(
     request: BuilderRequest,
     current_user: User = Depends(get_current_user),
