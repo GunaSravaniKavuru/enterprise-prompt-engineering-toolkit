@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import api from "../services/api";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ExportCard from "../components/export-import/ExportCard";
 import ImportCard from "../components/export-import/ImportCard";
@@ -25,33 +26,51 @@ export default function ExportImport() {
   const [validationState, setValidationState] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
   const [importSummary, setImportSummary] = useState(null);
+  const [promptCount, setPromptCount] = useState(0);
   const fileInputRef = useRef(null);
   const showToast = useToast();
 
-  const handleFileSelection = (file) => {
+  const handleFileSelection = async (file) => {
     if (!file) return;
 
     const extension = file.name.split(".").pop()?.toLowerCase();
-    const supported = ["json", "md", "txt", "csv"];
-    const detectedFormat = extension === "json" ? "JSON" : extension === "md" ? "Markdown" : extension === "txt" ? "TXT" : extension === "csv" ? "CSV" : "Unsupported";
+    const supported = ["json"];
+    const detectedFormat =
+  extension === "json" ? "JSON" : "Unsupported";
 
     let nextState = "success";
     let nextMessage = "Valid file detected. Prompt collection is ready for import.";
 
     if (!supported.includes(extension)) {
       nextState = "error";
-      nextMessage = "Unsupported format. Please upload JSON, Markdown, TXT, or CSV.";
+      nextMessage = "Unsupported format. Please upload a JSON file.";
     } else if (file.size > 220000) {
       nextState = "warning";
       nextMessage = "Large file detected. Review prompt count before importing.";
     }
+let promptCount = "—";
 
+if (extension === "json") {
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+
+    if (Array.isArray(json)) {
+      promptCount = json.length;
+    } else if (typeof json === "object") {
+      promptCount = 1;
+    }
+  } catch (error) {
+    console.error("Invalid JSON:", error);
+  }
+}
     setSelectedFile({
-      name: file.name,
-      size: formatBytes(file.size),
-      format: detectedFormat,
-      prompts: extension === "csv" ? 32 : extension === "md" ? 24 : 18,
-    });
+  file,
+  name: file.name,
+  size: formatBytes(file.size),
+  format: detectedFormat,
+  prompts: promptCount,
+});
     setValidationState(nextState);
     setValidationMessage(nextMessage);
     setImportSummary(null);
@@ -68,20 +87,80 @@ export default function ExportImport() {
     fileInputRef.current?.click();
   };
 
-  const handleExport = () => {
-    showToast(`Exported ${selectedFormat.toLowerCase()} bundle`, "success");
-  };
+  const handleExport = async () => {
+  try {
+    const response = await api.get("/export_import/export", {
+      responseType: "blob",
+    });
 
-  const handleImport = () => {
-    if (!selectedFile) {
-      showToast("Select a file to import first", "warning");
-      return;
+    const blob = new Blob([response.data], {
+      type: "application/json",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "prompts_export.json";
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    showToast("Prompts exported successfully", "success");
+  } catch (error) {
+    console.error(error);
+    showToast("Export failed", "error");
+  }
+};
+
+  const handleImport = async () => {
+  if (!selectedFile?.file) {
+    showToast("Select a JSON file first", "warning");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", selectedFile.file);
+
+    const response = await api.post(
+      "/export_import/import",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    setImportSummary({
+      imported: response.data.message,
+    });
+
+    showToast(response.data.message, "success");
+  } catch (error) {
+    console.error(error);
+    showToast(
+      error.response?.data?.detail || "Import failed",
+      "error"
+    );
+  }
+};
+useEffect(() => {
+  const fetchPromptCount = async () => {
+    try {
+      const response = await api.get("/library/");
+      setPromptCount(response.data.length);
+    } catch (error) {
+      console.error("Failed to fetch prompt count:", error);
     }
-
-    setImportSummary({ imported: 18, skipped: 2, failed: 0, duration: "1.4s", summary: "Prompt collection imported successfully with a few duplicates skipped." });
-    showToast("Import completed successfully", "success");
   };
 
+  fetchPromptCount();
+}, []);
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 pb-8">
       <motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="sticky top-0 z-20 -mx-2 rounded-3xl border border-white/10 bg-[rgba(10,12,20,0.8)]/80 px-4 py-4 backdrop-blur-xl sm:px-6">
@@ -91,7 +170,12 @@ export default function ExportImport() {
       </motion.header>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <ExportCard selectedFormat={selectedFormat} onFormatChange={setSelectedFormat} promptCount={124} estimatedSize="2.4 MB" onExport={handleExport} />
+        <ExportCard
+  selectedFormat={selectedFormat}
+  onFormatChange={setSelectedFormat}
+  promptCount={promptCount}
+  onExport={handleExport}
+/>
         <ImportCard
           dragOver={dragOver}
           onDragOver={(event) => {
@@ -112,7 +196,7 @@ export default function ExportImport() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json,.md,.txt,.csv"
+        accept=".json"
         hidden
         onChange={(event) => handleFileSelection(event.target.files?.[0])}
       />

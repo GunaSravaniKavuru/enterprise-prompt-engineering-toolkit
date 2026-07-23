@@ -3,8 +3,8 @@ import Card from "../common/Card";
 import Icon from "../common/Icon";
 
 const items = [
-  { title: "Most used prompt", value: "Customer Churn Diagnosis Agent", detail: "42 runs this week" },
-  { title: "Best performing model", value: "Claude Sonnet 5", detail: "94.2 avg quality score" },
+  
+  
   { title: "Fastest response", value: "Gemini 2.5 Pro", detail: "1.2s median latency" },
   { title: "Top category", value: "Engineering", detail: "28% of prompt volume" },
 ];

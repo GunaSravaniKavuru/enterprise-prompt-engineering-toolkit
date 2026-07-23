@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 
 const formats = [
-  { value: "JSON", label: "JSON", description: "Best for re-importing" },
-  { value: "Markdown", label: "Markdown", description: "Readable and portable" },
-  { value: "TXT", label: "TXT", description: "Plain text export" },
-  { value: "CSV", label: "CSV", description: "Spreadsheet friendly" },
+  {
+    value: "JSON",
+    label: "JSON",
+    description: "Supported export format",
+  },
 ];
 
 export default function FormatSelector({ value, onChange }) {

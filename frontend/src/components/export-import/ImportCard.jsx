@@ -57,23 +57,7 @@ export default function ImportCard({
             />
           )}
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm font-semibold text-ink">Import options</p>
-            <div className="mt-3 grid gap-3">
-              <label className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-3 text-sm text-ink">
-                <span>Skip duplicates</span>
-                <input type="radio" name="importMode" defaultChecked className="h-4 w-4" />
-              </label>
-              <label className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-3 text-sm text-ink">
-                <span>Replace existing prompts</span>
-                <input type="radio" name="importMode" className="h-4 w-4" />
-              </label>
-              <label className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-3 text-sm text-ink">
-                <span>Create new versions for duplicates</span>
-                <input type="radio" name="importMode" className="h-4 w-4" />
-              </label>
-            </div>
-          </div>
+          
         </div>
 
         {importSummary && <div className="mt-6"><ImportSummary {...importSummary} /></div>}

@@ -162,7 +162,7 @@ export default function PromptBuilder() {
 const editPrompt = location.state?.prompt;
 
 useEffect(() => {
-  console.log("Edit Prompt:", editPrompt);
+  console.log("Edit Prompt:", JSON.stringify(editPrompt, null, 2));
 
   if (!isEditMode || !editPrompt) return;
 
@@ -246,11 +246,38 @@ useEffect(() => {
   };
 
   try {
+     console.log("isEditMode:", isEditMode);
+     console.log("editPrompt:", editPrompt);
     if (isEditMode) {
-      await api.put(`/library/${editPrompt.id}`, payload);
+      console.log("Updating payload:", payload);
+  console.log("Updating form_data:", payload.form_data);
 
-      showToast(`Prompt "${form.promptName}" updated successfully`);
-    } else {
+  // Update the prompt
+  await api.put(`/library/${editPrompt.id}`, payload);
+
+  // Create a version snapshot
+  await api.post(`/versions/prompt/${editPrompt.id}`, {
+    title: form.promptName.trim(),
+    user_prompt: generatedPrompt,
+    commit_message: "Prompt updated",
+    changes: ["Prompt edited"],
+    status: "Draft",
+    model_used: "Gemini",
+    system_prompt: "",
+    variables: [],
+    tags: [],
+    prompt_settings: {
+      temperature: 0.7,
+      topP: 0.9,
+      maxTokens: 2048,
+    },
+    notes: "Updated from Prompt Builder",
+  });
+
+  showToast(`Prompt "${form.promptName}" updated successfully`);
+} else {
+  console.log("Saving payload:", payload);
+  console.log("Saving form_data:", payload.form_data);
       await api.post("/library", payload);
 
       showToast(`Prompt "${form.promptName}" saved successfully`);

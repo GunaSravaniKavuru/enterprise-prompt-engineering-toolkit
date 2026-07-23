@@ -1,10 +1,12 @@
-﻿import { motion } from "framer-motion";
+﻿import { api } from "../services/api";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
 import Badge from "../components/common/Badge";
 import Icon from "../components/common/Icon";
-import { recentPrompts, recentActivity } from "../data/dummyData";
+
 import heroAi from "../assets/hero-ai.svg.svg";
 
 const quickActions = [
@@ -13,12 +15,7 @@ const quickActions = [
   { label: "Playground", icon: "play", to: "/playground" },
 ];
 
-const overviewCards = [
-  { label: "Total Prompts", value: "1,284", description: "All prompts in your workspace", icon: "plus" },
-  { label: "Average Prompt Quality", value: "87.3", description: "Across all prompts", icon: "sparkle" },
-  { label: "Prompts Evaluated", value: "2", description: "Total prompts successfully evaluated.", icon: "check" },
-  { label: "Prompt Optimizations", value: "6", description: "Prompts improved using the Prompt Optimizer.", icon: "sparkle" },
-];
+
 
 const activityMeta = {
   optimized: { icon: "sparkle", tone: "violet" },
@@ -49,6 +46,78 @@ function HeroIllustration() {
 
 export default function Dashboard() {
   const userName = localStorage.getItem("userName") || "Guest";
+  const [recentPrompts, setRecentPrompts] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [stats, setStats] = useState({
+    totalPrompts: 0,
+    averageQuality: 0,
+    evaluated: 0,
+    optimized: 0,
+  });
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const promptRes = await api.get("/library");
+
+      const prompts = promptRes.data;
+
+      setRecentPrompts(prompts.slice(0, 4));
+
+      setStats({
+        totalPrompts: prompts.length,
+        averageQuality:
+          prompts.length > 0
+            ? (
+                prompts.reduce((sum, p) => sum + (p.score || 0), 0) /
+                prompts.length
+              ).toFixed(1)
+            : 0,
+        evaluated: prompts.filter((p) => p.score != null).length,
+        optimized: prompts.filter((p) => p.category === "Optimizer").length,
+      });
+
+      setRecentActivity(
+        prompts.slice(0, 5).map((p) => ({
+          id: p.id,
+          actor: "You",
+          action: "updated",
+          target: p.title,
+          time: new Date(p.updated_at).toLocaleString(),
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const overviewCards = [
+  {
+    label: "Total Prompts",
+    value: stats.totalPrompts,
+    description: "All prompts in your workspace",
+    icon: "plus",
+  },
+  {
+    label: "Average Prompt Quality",
+    value: stats.averageQuality,
+    description: "Across all prompts",
+    icon: "sparkle",
+  },
+  {
+    label: "Prompts Evaluated",
+    value: stats.evaluated,
+    description: "Successfully evaluated prompts",
+    icon: "check",
+  },
+  {
+    label: "Prompt Optimizations",
+    value: stats.optimized,
+    description: "Optimized prompts",
+    icon: "sparkle",
+  },
+];
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 pb-8 sm:px-6 lg:px-8">
       <section>

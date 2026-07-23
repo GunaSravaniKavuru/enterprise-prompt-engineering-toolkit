@@ -64,10 +64,29 @@ export default function PromptOptimizer() {
     }
   };
 
-  const handleSave = () => {
-    if (!optimizedPrompt) return;
-    showToast("Optimized prompt saved.");
-  };
+  const handleSave = async () => {
+  if (!optimizedPrompt) return;
+
+  try {
+    await api.post("/library", {
+      title: originalPrompt.slice(0, 50) || "Optimized Prompt",
+      category: "Optimizer",
+      tags: ["optimized"],
+      content: optimizedPrompt,
+      technique: "Prompt Optimization",
+      output_format: "Text",
+      form_data: {},
+    });
+
+    showToast("Optimized prompt saved successfully.");
+  } catch (error) {
+    console.error(error);
+
+    showToast(
+      error.response?.data?.detail || "Failed to save prompt."
+    );
+  }
+};
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">

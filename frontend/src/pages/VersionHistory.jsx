@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Card from "../components/common/Card";
 import Badge from "../components/common/Badge";
 import Button from "../components/common/Button";
 import Icon from "../components/common/Icon";
 import Modal from "../components/common/Modal";
-
+import api from "../services/api";
 function getLatestVersions(versions, count = 3) {
   return [...versions].slice(-count);
 }
@@ -135,7 +135,9 @@ function StickyHeader({ selectedVersion }) {
           <p className="mt-2 text-sm leading-7 text-ink-dim">Track how the prompt evolved, compare revisions, and move the strongest version forward.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge tone="emerald">Current {selectedVersion.version}</Badge>
+          <Badge tone="emerald">
+  Current v{selectedVersion.version_number}
+</Badge>
           <Badge tone="violet">{selectedVersion.name}</Badge>
         </div>
       </div>
@@ -143,16 +145,35 @@ function StickyHeader({ selectedVersion }) {
   );
 }
 
-function SearchToolbar({ search, setSearch, sortOrder, setSortOrder }) {
+function SearchToolbar({
+  prompts,
+  selectedPromptId,
+  setSelectedPromptId,
+  sortOrder,
+  setSortOrder,
+}) {
   return (
     <Card className="p-4 lg:p-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex-1 lg:max-w-xl">
-          <label className="text-sm text-ink-dim">Search versions</label>
+          <label className="text-sm text-ink-dim">Select Prompt</label>
           <div className="mt-2 flex items-center gap-2 rounded-2xl border border-[var(--color-border-soft)] bg-black/20 px-3 py-2">
-            <Icon name="search" size={15} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by title, summary, or version" className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint" />
-          </div>
+  <Icon name="search" size={15} />
+
+  <select
+    value={selectedPromptId}
+    onChange={(e) => setSelectedPromptId(e.target.value)}
+    className="w-full bg-transparent text-sm text-ink outline-none"
+  >
+    <option value="">Select a Prompt</option>
+
+    {prompts.map((prompt) => (
+      <option key={prompt.id} value={prompt.id}>
+        {prompt.title}
+      </option>
+    ))}
+  </select>
+</div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant={sortOrder === "newest" ? "primary" : "secondary"} size="sm" icon="clock" onClick={() => setSortOrder("newest")}>Newest first</Button>
@@ -163,7 +184,7 @@ function SearchToolbar({ search, setSearch, sortOrder, setSortOrder }) {
   );
 }
 
-function VersionTimeline({ versions, selectedVersionId, onSelect, onOpenDetails, onCompare, onRestore, onDelete }) {
+function VersionTimeline({ versions, selectedVersionId, onSelect, onOpenDetails, onRestore, onDelete }) {
   if (!versions.length) {
     return (
       <Card className="p-8 text-center">
@@ -189,39 +210,52 @@ function VersionTimeline({ versions, selectedVersionId, onSelect, onOpenDetails,
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <button onClick={() => onSelect(version.id)} className="max-w-2xl text-left">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-display text-sm font-semibold text-ink">{version.version}</span>
+                      <span className="font-display text-sm font-semibold text-ink">
+    v{version.version_number}
+</span>
                       <Badge tone={statusTone(version.status)}>{version.status}</Badge>
                       <Badge tone="violet">{version.label}</Badge>
                     </div>
                     <p className="mt-2 text-sm font-medium text-ink">{version.title || version.name}</p>
-                    <p className="mt-2 text-sm leading-6 text-ink-dim">{version.commitMessage}</p>
+                    <p className="mt-2 text-sm leading-6 text-ink-dim">
+    {version.commit_message}
+</p>
                   </button>
                   <div className="text-sm text-ink-faint">
-                    <p>{version.timestamp}</p>
-                    <p className="mt-1">by {version.author}</p>
-                  </div>
+    <p>
+  {new Date(version.created_at + "Z").toLocaleString("en-IN", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  })}
+</p>
+    <p className="mt-1">by User</p>
+</div>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
                     <p className="text-[10px] uppercase tracking-[0.24em] text-ink-faint">Quality</p>
-                    <p className="mt-1 font-semibold text-ink">{version.qualityScore !== null && version.qualityScore !== undefined ? `${version.qualityScore}/100` : "Awaiting evaluation"}</p>
+                    <p className="mt-1 font-semibold text-ink">
+  {version.quality_score != null
+    ? `${version.quality_score}/100`
+    : "Pending Evaluation"}
+</p>
                   </div>
                   <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
                     <p className="text-[10px] uppercase tracking-[0.24em] text-ink-faint">Evaluation</p>
-                    <p className="mt-1 font-semibold text-ink">{version.evaluationScore !== null && version.evaluationScore !== undefined ? `${version.evaluationScore}/100` : "Not evaluated yet"}</p>
+                    <p className="mt-1 font-semibold text-ink">{version.evaluation_score != null
+ ? `${version.evaluation_score}/100`
+ : "Not Evaluated"}</p>
                   </div>
-                  <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-ink-faint">Rating</p>
-                    <p className="mt-1 font-semibold text-ink">{version.averageUserRating !== null && version.averageUserRating !== undefined ? `${version.averageUserRating}/5` : "No rating available"}</p>
-                  </div>
+                  
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button variant="secondary" size="sm" icon="eye" onClick={() => onOpenDetails(version)}>View</Button>
-                  <Button variant="secondary" size="sm" icon="swap" onClick={() => onCompare(version.id)}>Compare</Button>
+                  
                   <Button variant="secondary" size="sm" icon="restore" onClick={() => onRestore(version)}>Restore</Button>
-                  <Button variant="secondary" size="sm" icon="trash" onClick={() => onDelete(version.id)}>Delete</Button>
+                  <Button variant="secondary" size="sm" icon="trash" onClick={() => onDelete(version)}>Delete</Button>
                 </div>
               </div>
             </motion.div>
@@ -244,7 +278,9 @@ function VersionDrawer({ version, open, onClose }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Version details</p>
-                <h3 className="mt-2 font-display text-xl font-semibold text-ink">{version.version} · {version.title || version.name}</h3>
+                <h3 className="mt-2 font-display text-xl font-semibold text-ink">
+  v{version.version_number} · {version.title}
+</h3>
               </div>
               <button onClick={onClose} className="rounded-xl border border-[var(--color-border-soft)] p-2 text-ink-dim hover:text-ink">
                 <Icon name="x" size={18} />
@@ -252,29 +288,37 @@ function VersionDrawer({ version, open, onClose }) {
             </div>
 
             <div className="mt-6 space-y-3">
-              <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
-                <p className="text-sm font-semibold text-ink">System prompt</p>
-                <p className="mt-2 text-sm leading-7 text-ink-dim">{version.systemPrompt}</p>
-              </div>
-              <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
-                <p className="text-sm font-semibold text-ink">User prompt</p>
-                <p className="mt-2 text-sm leading-7 text-ink-dim">{version.prompt}</p>
-              </div>
+              
+             <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
+  <p className="text-sm font-semibold text-ink">User prompt</p>
+
+  <div className="mt-2 max-h-[380px] overflow-y-auto">
+    <p className="text-sm leading-7 text-ink-dim whitespace-pre-wrap">
+      {version.user_prompt || "No prompt available"}
+    </p>
+  </div>
+</div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
                   <p className="text-sm font-semibold text-ink">Prompt settings</p>
                   <div className="mt-3 space-y-2 text-sm text-ink-dim">
-                    <div className="flex items-center justify-between"><span>Temperature</span><span className="font-semibold text-ink">{version.promptSettings?.temperature ?? "Backend provided"}</span></div>
-                    <div className="flex items-center justify-between"><span>Top P</span><span className="font-semibold text-ink">{version.promptSettings?.topP ?? "Backend provided"}</span></div>
-                    <div className="flex items-center justify-between"><span>Max tokens</span><span className="font-semibold text-ink">{version.promptSettings?.maxTokens ?? "Backend provided"}</span></div>
+                    <div className="flex items-center justify-between"><span>Temperature</span><span className="font-semibold text-ink">{version.prompt_settings?.temperature ?? "Backend provided"}</span></div>
+                    <div className="flex items-center justify-between"><span>Top P</span><span className="font-semibold text-ink">{version.prompt_settings?.topP ?? "Backend provided"}</span></div>
+                    <div className="flex items-center justify-between"><span>Max tokens</span><span className="font-semibold text-ink">{version.prompt_settings?.maxTokens ?? "Backend provided"}</span></div>
                   </div>
                 </div>
                 <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
                   <p className="text-sm font-semibold text-ink">Metadata</p>
                   <div className="mt-3 space-y-2 text-sm text-ink-dim">
-                    <div className="flex items-center justify-between"><span>Model</span><span className="font-semibold text-ink">{version.modelUsed || "Generated by backend"}</span></div>
-                    <div className="flex items-center justify-between"><span>Tags</span><span className="font-semibold text-ink">{version.tags?.length ? version.tags.join(", ") : "Generated by backend"}</span></div>
-                    <div className="flex items-center justify-between"><span>Created</span><span className="font-semibold text-ink">{version.timestamp || "Timestamp will be provided by backend"}</span></div>
+                    <div className="flex items-center justify-between"><span>Model</span><span className="font-semibold text-ink">{version.model_used || "Gemini"}</span></div>
+                    <div className="flex items-center justify-between"><span>Tags</span><span className="font-semibold text-ink">{version.tags?.length
+    ? version.tags.join(", ")
+    : "No tags"}</span></div>
+                    <div className="flex items-center justify-between"><span>Created</span><span className="font-semibold text-ink">{new Date(version.created_at + "Z").toLocaleString("en-IN", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Kolkata",
+})}</span></div>
                   </div>
                 </div>
               </div>
@@ -286,37 +330,14 @@ function VersionDrawer({ version, open, onClose }) {
   );
 }
 
-function CompareModal({ open, onClose, versionA, versionB }) {
-  return (
-    <Modal open={open} onClose={onClose} title="Compare versions" footer={<Button variant="secondary" size="sm" onClick={onClose}>Close</Button>}>
-      <div className="space-y-4">
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-            <p className="text-sm font-semibold text-ink">{versionA?.version} · {versionA?.title || versionA?.name}</p>
-            <p className="mt-2 text-sm leading-7 text-ink-dim">{versionA?.prompt}</p>
-          </div>
-          <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-4">
-            <p className="text-sm font-semibold text-ink">{versionB?.version} · {versionB?.title || versionB?.name}</p>
-            <p className="mt-2 text-sm leading-7 text-ink-dim">{versionB?.prompt}</p>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-4">
-          <p className="text-sm font-semibold text-ink">Metadata comparison</p>
-          <div className="mt-3 grid gap-2 text-sm text-ink-dim sm:grid-cols-2">
-            <div className="rounded-xl border border-[var(--color-border-soft)] bg-black/20 p-3">Quality: {versionA?.qualityScore !== null && versionA?.qualityScore !== undefined ? `${versionA.qualityScore}/100` : "Awaiting evaluation"} vs {versionB?.qualityScore !== null && versionB?.qualityScore !== undefined ? `${versionB.qualityScore}/100` : "Awaiting evaluation"}</div>
-            <div className="rounded-xl border border-[var(--color-border-soft)] bg-black/20 p-3">Model: {versionA?.modelUsed || "Generated by backend"} vs {versionB?.modelUsed || "Generated by backend"}</div>
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
-}
 
 function RestoreDialog({ open, onClose, version, onConfirm }) {
   return (
     <Modal open={open} onClose={onClose} title="Restore version" footer={<><Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button><Button size="sm" onClick={onConfirm}>Restore</Button></>}>
       <div className="space-y-3 text-sm text-ink-dim">
-        <p>The current version will stay stored, and <span className="font-semibold text-ink">{version?.version}</span> will become the latest revision.</p>
+        <p>The current version will stay stored, and <span className="font-semibold text-ink">
+  v{version?.version_number}
+</span> will become the latest revision.</p>
       </div>
     </Modal>
   );
@@ -326,7 +347,9 @@ function DeleteDialog({ open, onClose, version, onConfirm, canDelete }) {
   return (
     <Modal open={open} onClose={onClose} title="Delete version" footer={<><Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button><Button variant="danger" size="sm" onClick={onConfirm} disabled={!canDelete}>Delete</Button></>}>
       <div className="space-y-3 text-sm text-ink-dim">
-        {canDelete ? <p>This will remove <span className="font-semibold text-ink">{version?.version}</span> from the timeline.</p> : <p>The last remaining version cannot be deleted.</p>}
+        {canDelete ? <p>This will remove <span className="font-semibold text-ink">
+  v{version?.version_number}
+</span> from the timeline.</p> : <p>The last remaining version cannot be deleted.</p>}
       </div>
     </Modal>
   );
@@ -354,17 +377,60 @@ function ActivityFeed({ items }) {
 }
 
 export default function VersionHistory() {
-  const [versions, setVersions] = useState(backendVersions);
+  const [versions, setVersions] = useState([]);
   const [selectedVersionId, setSelectedVersionId] = useState(backendVersions[backendVersions.length - 1]?.id ?? "");
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [drawerVersion, setDrawerVersion] = useState(null);
-  const [compareTarget, setCompareTarget] = useState(null);
+  
   const [restoreTarget, setRestoreTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [prompts, setPrompts] = useState([]);
+const [selectedPromptId, setSelectedPromptId] = useState("");
+useEffect(() => {/*
+useEffect(() => {
+   ...
+}, [selectedPromptId]);
+*/
+  const loadPrompts = async () => {
+    try {
+      const response = await api.get("/library");
+      setPrompts(response.data);
+      console.log("Library:", JSON.stringify(response.data, null, 2));
+    } catch (error) {
+      console.error("Failed to load prompts:", error);
+    }
+  };
 
-  const selectedVersion = versions.find((item) => item.id === selectedVersionId) || versions[versions.length - 1] || null;
+  loadPrompts();
+}, []);
+const loadVersions = async () => {
+  if (!selectedPromptId) return;
 
+  try {
+    const response = await api.get(
+      `/versions/prompt/${selectedPromptId}`
+    );
+
+    console.log("Versions:", response.data);
+
+    setVersions(response.data);
+
+    if (response.data.length > 0) {
+      setSelectedVersionId(response.data[0].id);
+    }
+
+  } catch (error) {
+    console.error("Failed to load versions:", error);
+  }
+};
+
+useEffect(() => {
+  loadVersions();
+}, [selectedPromptId]);
+  const selectedVersion =
+  versions.find((item) => item.id === selectedVersionId) ||
+  versions[0] || {};
   const latestVersions = useMemo(() => getLatestVersions(versions), [versions]);
 
   const filteredVersions = useMemo(() => {
@@ -372,35 +438,47 @@ export default function VersionHistory() {
     return sortOrder === "oldest" ? [...next].reverse() : next;
   }, [search, sortOrder, latestVersions]);
 
-  const handleCompare = (versionId) => {
-    const target = versions.find((item) => item.id === versionId);
-    setCompareTarget(target ? { oldVersion: selectedVersion, newVersion: target } : null);
-  };
+  
 
-  const handleDelete = (versionId) => {
-    if (versions.length <= 1) {
-      setDeleteTarget(versions.find((item) => item.id === versionId) || null);
-      return;
-    }
-    setVersions((prev) => {
-      const next = prev.filter((item) => item.id !== versionId);
-      setSelectedVersionId((current) => (current === versionId ? next[0]?.id ?? "" : current));
-      return next;
-    });
+  const handleDelete = async (versionId) => {
+  try {
+    await api.delete(`/versions/${versionId}`);
+
+    await loadVersions();
+
     setDeleteTarget(null);
-  };
+  } catch (error) {
+    console.error("Failed to delete version:", error);
+  }
+};
 
-  const handleRestore = () => {
+  const handleRestore = async () => {
+  if (!restoreTarget) return;
+
+  try {
+    await api.post(`/versions/${restoreTarget.id}/restore`);
+
+    await loadVersions();
+
     setRestoreTarget(null);
-  };
+  } catch (error) {
+    console.error("Failed to restore version:", error);
+  }
+};
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-1 py-2 sm:px-2 lg:px-3">
       <StickyHeader selectedVersion={selectedVersion} />
-      <SearchToolbar search={search} setSearch={setSearch} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+      <SearchToolbar
+  prompts={prompts}
+  selectedPromptId={selectedPromptId}
+  setSelectedPromptId={setSelectedPromptId}
+  sortOrder={sortOrder}
+  setSortOrder={setSortOrder}
+/>
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-4">
-          <VersionTimeline versions={filteredVersions} selectedVersionId={selectedVersionId} onSelect={setSelectedVersionId} onOpenDetails={setDrawerVersion} onCompare={handleCompare} onRestore={setRestoreTarget} onDelete={setDeleteTarget} />
+          <VersionTimeline versions={filteredVersions} selectedVersionId={selectedVersionId} onSelect={setSelectedVersionId} onOpenDetails={setDrawerVersion} onRestore={setRestoreTarget} onDelete={setDeleteTarget} />
         </div>
         <div className="space-y-4">
           <Card className="p-4 lg:p-5">
@@ -416,22 +494,26 @@ export default function VersionHistory() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-3 text-sm text-ink-dim">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-ink-faint">Model</p>
-                <p className="mt-1 font-semibold text-ink">{selectedVersion.modelUsed}</p>
+                <p className="mt-1 font-semibold text-ink">
+  {selectedVersion.model_used || "Gemini"}
+</p>
               </div>
               <div className="rounded-2xl border border-[var(--color-border-soft)] bg-white/[0.03] p-3 text-sm text-ink-dim">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-ink-faint">Version</p>
-                <p className="mt-1 font-semibold text-ink">{selectedVersion.version}</p>
+                <p className="mt-1 font-semibold text-ink">
+    v{selectedVersion.version_number}
+</p>
               </div>
             </div>
           </Card>
-          <ActivityFeed items={activityFeed} />
+          
         </div>
       </div>
 
       <VersionDrawer version={drawerVersion} open={Boolean(drawerVersion)} onClose={() => setDrawerVersion(null)} />
-      <CompareModal open={Boolean(compareTarget)} onClose={() => setCompareTarget(null)} versionA={compareTarget?.oldVersion} versionB={compareTarget?.newVersion} />
+      
       <RestoreDialog open={Boolean(restoreTarget)} onClose={() => setRestoreTarget(null)} version={restoreTarget} onConfirm={handleRestore} />
-      <DeleteDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} version={deleteTarget} onConfirm={() => handleDelete(deleteTarget?.id)} canDelete={versions.length > 1} />
+      <DeleteDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} version={deleteTarget} onConfirm={() => handleDelete(deleteTarget.id)} canDelete={versions.length > 1} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import api from "../../services/api";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Card from "../common/Card";
@@ -5,75 +6,16 @@ import Button from "../common/Button";
 import Icon from "../common/Icon";
 import Badge from "../common/Badge";
 
-const promptCatalog = [
-  {
-    id: "churn",
-    title: "Customer Churn Diagnosis",
-    description: "Assess churn-risk signals and propose a concise action plan.",
-    variables: ["accountId", "segment", "lastInteractionDate", "productUsageTrend"],
-  },
-  {
-    id: "support",
-    title: "Support Triage Assistant",
-    description: "Prioritize urgent issues and draft a customer-ready response.",
-    variables: ["ticketId", "priority", "customerTone", "timeline"],
-  },
-  {
-    id: "launch",
-    title: "Product Launch Brief",
-    description: "Summarize the launch narrative and define the key messaging.",
-    variables: ["launchDate", "audience", "valueProp", "riskFlags"],
-  },
-];
+
 
 const modelCatalog = [
   {
-    id: "gemini-2.5-flash",
-    name: "Gemini 2.5 Flash",
-    provider: "Google",
-    quality: 92,
-    latency: 1.1,
-    tokens: 1800,
-    inputTokens: 1200,
-    outputTokens: 600,
-    totalTokens: 1800,
-    responseTime: 1.1,
-    responseLength: 1680,
-    qualityScore: 92,
-    response: "Gemini 2.5 Flash delivered a fast, structured response with strong clarity and efficient pacing.",
-    output: "## Recommendation\n- Prioritize the highest-risk segment first.\n- Keep the tone calm and action-oriented.\n\n```ts\nconst nextAction = 'Escalate to the retention pod';\n```",
+    id: "gemini:3.6-flash",
+    name: "Gemini 3.6 Flash",
   },
   {
-    id: "gemini-2.5-pro",
-    name: "Gemini 2.5 Pro",
-    provider: "Google",
-    quality: 95,
-    latency: 1.8,
-    tokens: 2100,
-    inputTokens: 1450,
-    outputTokens: 650,
-    totalTokens: 2100,
-    responseTime: 1.8,
-    responseLength: 1920,
-    qualityScore: 95,
-    response: "Gemini 2.5 Pro provided a balanced, high-detail response with strong reasoning and polished structure.",
-    output: "## Summary\n- The evidence strongly supports proactive outreach.\n- The recommended messaging should be concise and confident.\n\n```md\n**Key move:** sync customer success and product for a joint follow-up.\n```",
-  },
-  {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
-    provider: "Google",
-    quality: 88,
-    latency: 1.3,
-    tokens: 2600,
-    inputTokens: 1700,
-    outputTokens: 900,
-    totalTokens: 2600,
-    responseTime: 1.3,
-    responseLength: 1560,
-    qualityScore: 88,
-    response: "Gemini 2.0 Flash delivered a quick, creative response with strong contextual synthesis and concise formatting.",
-    output: "## Snapshot\n- Excellent for broad ideation and brainstorming.\n- Less precise when strict formatting matters.\n\n```json\n{\n  \"focus\": \"clarity\"\n}\n```",
+    id: "gemini:3.5-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
   },
 ];
 
@@ -106,27 +48,43 @@ function StickyHeader({ title, description, onCompare, onClear, hasResults }) {
     <motion.header
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-20 rounded-[28px] border border-[var(--color-border-hi)] bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.16),_transparent_30%),rgba(10,12,20,0.92)] px-4 py-4 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.85)] backdrop-blur xl:px-6"
+      className="border-b border-[var(--color-border-soft)] bg-transparent px-5 py-8"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-violet-200">
-            <Icon name="gauge" size={13} /> Multi model comparison
-          </div>
-          <h1 className="mt-3 font-display text-3xl font-semibold text-ink">{title}</h1>
-          <p className="mt-2 text-sm leading-7 text-ink-dim">{description}</p>
-        </div>
+        <div>
+  <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-violet-200">
+    <Icon name="gauge" size={13} />
+    MULTI MODEL COMPARISON
+  </div>
+
+  <h1 className="mt-4 text-4xl font-bold text-ink">
+    Multi-Model Comparison
+  </h1>
+
+  <p className="mt-2 text-base text-ink-dim">
+    Compare responses from multiple AI models using your saved prompts.
+  </p>
+</div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" icon="play" onClick={onCompare}>Compare</Button>
-          <Button variant="secondary" size="sm" icon="x" onClick={onClear} disabled={!hasResults}>Clear Results</Button>
+          
+          
         </div>
       </div>
     </motion.header>
   );
 }
 
-function ComparisonConfigCard({ prompt, setPrompt, selectedModels, toggleModel, variables, setVariable, onRun, promptOptions }) {
-  const selectedPrompt = promptCatalog.find((item) => item.id === prompt) || promptCatalog[0];
+function ComparisonConfigCard({
+  prompt,
+  setPrompt,
+  selectedModels,
+  toggleModel,
+  onRun,
+  promptOptions,
+}){
+  const selectedPrompt =
+  promptOptions.find((item) => item.id === prompt) ||
+  promptOptions[0];
 
   return (
     <Card className="p-4 lg:p-5">
@@ -141,7 +99,11 @@ function ComparisonConfigCard({ prompt, setPrompt, selectedModels, toggleModel, 
       <div className="mt-5 space-y-4">
         <label className="block text-sm text-ink-dim">
           <span className="mb-2 block font-medium text-ink">Prompt selector</span>
-          <select value={prompt} onChange={(event) => setPrompt(event.target.value)} className="w-full rounded-2xl border border-[var(--color-border-soft)] bg-[#11141c] px-3 py-2.5 text-sm text-ink outline-none focus-ring">
+         <select
+  value={prompt}
+  onChange={(event) => setPrompt(event.target.value)}
+  className="w-full rounded-lg border border-gray-600 bg-[#181a20] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+>
             {promptOptions.map((item) => (
               <option key={item.id} value={item.id}>{item.title}</option>
             ))}
@@ -163,20 +125,7 @@ function ComparisonConfigCard({ prompt, setPrompt, selectedModels, toggleModel, 
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-ink">Prompt variables</p>
-            <Badge tone="emerald">Dynamic</Badge>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {selectedPrompt.variables.map((variable) => (
-              <label key={variable} className="text-sm text-ink-dim">
-                <span className="mb-1.5 block text-xs uppercase tracking-[0.24em] text-ink-faint">{variable}</span>
-                <input value={variables[variable] || ""} onChange={(event) => setVariable(variable, event.target.value)} className="w-full rounded-xl border border-[var(--color-border-soft)] bg-[#12141f] px-3 py-2 text-sm text-ink outline-none focus-ring" placeholder={`Enter ${variable}`} />
-              </label>
-            ))}
-          </div>
-        </div>
+        
 
         <Button className="w-full" icon="play" onClick={onRun}>Run comparison</Button>
       </div>
@@ -219,101 +168,90 @@ function EmptyState({ onRun }) {
   );
 }
 
-function ComparisonSummary({ results }) {
-  if (!results.length) return null;
-
-  const fastest = [...results].sort((a, b) => (a.responseTime ?? a.latency) - (b.responseTime ?? b.latency))[0];
-  const highestQuality = [...results].sort((a, b) => (b.qualityScore ?? b.quality) - (a.qualityScore ?? a.quality))[0];
-  const longest = [...results].sort((a, b) => (b.responseLength ?? b.outputLength) - (a.responseLength ?? a.outputLength))[0];
-  const highestTotalTokens = [...results].sort((a, b) => (b.totalTokens ?? b.tokens) - (a.totalTokens ?? a.tokens))[0];
-  const highestInputTokens = [...results].sort((a, b) => (b.inputTokens ?? 0) - (a.inputTokens ?? 0))[0];
-  const bestOverall = [...results].sort((a, b) => (b.weightedScore ?? 0) - (a.weightedScore ?? 0))[0];
-
-  const items = [
-    { title: "Fastest", value: fastest.name, detail: `${(fastest.responseTime ?? fastest.latency).toFixed(1)}s`, tone: "cyan" },
-    { title: "Highest quality", value: highestQuality.name, detail: `${highestQuality.qualityScore ?? highestQuality.quality}/100`, tone: "violet" },
-    { title: "Most input tokens", value: highestInputTokens.name, detail: `${(highestInputTokens.inputTokens ?? 0).toLocaleString()}`, tone: "emerald" },
-    { title: "Longest response", value: longest.name, detail: `${longest.responseLength ?? longest.outputLength} chars`, tone: "amber" },
-    { title: "Most total tokens", value: highestTotalTokens.name, detail: `${(highestTotalTokens.totalTokens ?? highestTotalTokens.tokens).toLocaleString()}`, tone: "amber" },
-    { title: "Best overall", value: bestOverall.name, detail: `${bestOverall.weightedScore}/100`, tone: "violet" },
-  ];
-
-  return (
-    <Card className="p-4 lg:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Summary</p>
-          <h2 className="mt-2 font-display text-lg font-semibold text-ink">At-a-glance comparison</h2>
-        </div>
-        <Badge tone="emerald">Premium readout</Badge>
-      </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-ink">{item.title}</p>
-              <ToneBadge tone={item.tone}>{item.detail}</ToneBadge>
-            </div>
-            <p className="mt-2 text-sm text-ink-dim">{item.value}</p>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
 
 function ComparisonResults({ results, onCopy, onDownload }) {
-  const gridClass = results.length <= 1 ? "grid-cols-1" : results.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3";
+  const gridClass =
+    results.length === 1
+      ? "grid-cols-1"
+      : "grid-cols-1 md:grid-cols-2";
 
   return (
     <div className={`grid gap-4 ${gridClass}`}>
       {results.map((result, index) => (
-        <motion.article key={result.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="flex h-full flex-col rounded-[24px] border border-[var(--color-border-soft)] bg-white/[0.03] p-4 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.65)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-display text-lg font-semibold text-ink">{result.name}</h3>
-                <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>{result.provider}</Badge>
-              </div>
-              <p className="mt-2 text-sm leading-7 text-ink-dim">{result.response}</p>
-            </div>
-            <Badge tone={result.quality >= 93 ? "violet" : result.quality >= 90 ? "cyan" : "emerald"}>Score {result.qualityScore ?? result.quality}</Badge>
+        <motion.article
+          key={result.model}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.04 }}
+          className="flex h-full flex-col rounded-[24px] border border-[var(--color-border-soft)] bg-white/[0.03] p-4 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.65)]"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg font-semibold text-ink">
+              {result.model}
+            </h3>
+
+            <Badge tone={result.status === "success" ? "emerald" : "amber"}>
+              {result.status}
+            </Badge>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
-              <div className="flex items-center justify-between">
-                <span>Response time</span>
-                <span className="font-semibold text-ink">{(result.responseTime ?? result.latency).toFixed(1)}s</span>
+            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm">
+              <div className="flex justify-between">
+                <span>Latency</span>
+                <span>{result.latency_ms} ms</span>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <span>Response length</span>
-                <span className="font-semibold text-ink">{result.responseLength ?? result.outputLength} chars</span>
+
+              <div className="mt-2 flex justify-between">
+                <span>Total Tokens</span>
+                <span>{result.total_tokens}</span>
               </div>
             </div>
-            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm text-ink-dim">
-              <div className="flex items-center justify-between">
-                <span>Input tokens</span>
-                <span className="font-semibold text-ink">{(result.inputTokens ?? 0).toLocaleString()}</span>
+
+            <div className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 p-3 text-sm">
+              <div className="flex justify-between">
+                <span>Input Tokens</span>
+                <span>{result.input_tokens}</span>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <span>Output tokens</span>
-                <span className="font-semibold text-ink">{(result.outputTokens ?? 0).toLocaleString()}</span>
+
+              <div className="mt-2 flex justify-between">
+                <span>Output Tokens</span>
+                <span>{result.output_tokens}</span>
               </div>
             </div>
           </div>
 
           <div className="mt-4 rounded-[22px] border border-[var(--color-border-soft)] bg-slate-950/60 p-3">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-medium text-ink">Generated output</p>
-              <Badge tone="neutral">Markdown</Badge>
+              <p className="text-sm font-medium text-ink">
+                Generated Output
+              </p>
             </div>
-            <div className="max-h-60 overflow-auto rounded-2xl border border-white/10 bg-slate-950/80 p-3" dangerouslySetInnerHTML={renderMarkdown(result.output)} />
+
+            <div
+              className="max-h-60 overflow-auto rounded-2xl border border-white/10 bg-slate-950/80 p-3"
+              dangerouslySetInnerHTML={renderMarkdown(result.output)}
+            />
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" icon="copy" onClick={() => onCopy(result)}>Copy response</Button>
-            <Button variant="secondary" size="sm" icon="download" onClick={() => onDownload(result)}>Download response</Button>
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="copy"
+              onClick={() => onCopy(result)}
+            >
+              Copy
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="download"
+              onClick={() => onDownload(result)}
+            >
+              Download
+            </Button>
           </div>
         </motion.article>
       ))}
@@ -321,84 +259,95 @@ function ComparisonResults({ results, onCopy, onDownload }) {
   );
 }
 
-function ComparisonInsights({ results }) {
-  if (!results.length) return null;
-
-  const fastest = [...results].sort((a, b) => (a.responseTime ?? a.latency) - (b.responseTime ?? b.latency))[0];
-  const highestQuality = [...results].sort((a, b) => (b.qualityScore ?? b.quality) - (a.qualityScore ?? a.quality))[0];
-  const highestTotalTokens = [...results].sort((a, b) => (b.totalTokens ?? b.tokens) - (a.totalTokens ?? a.tokens))[0];
-  const longest = [...results].sort((a, b) => (b.responseLength ?? b.outputLength) - (a.responseLength ?? a.outputLength))[0];
-
-  const insights = [
-    `✓ Fastest response: ${fastest.name} (${(fastest.responseTime ?? fastest.latency).toFixed(1)}s).`,
-    `✓ Highest quality score: ${highestQuality.name} (${highestQuality.qualityScore ?? highestQuality.quality}/100).`,
-    `✓ Highest total token usage: ${highestTotalTokens.name} (${(highestTotalTokens.totalTokens ?? highestTotalTokens.tokens).toLocaleString()} tokens).`,
-    `✓ Longest response length: ${longest.name} (${longest.responseLength ?? longest.outputLength} chars).`,
-  ];
-
-  return (
-    <Card className="p-4 lg:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-ink-faint">Insights</p>
-          <h2 className="mt-2 font-display text-lg font-semibold text-ink">Concise comparison notes</h2>
-        </div>
-        <Badge tone="cyan">Readable</Badge>
-      </div>
-      <div className="mt-4 space-y-2">
-        {insights.map((item) => (
-          <div key={item} className="rounded-2xl border border-[var(--color-border-soft)] bg-black/20 px-3 py-3 text-sm text-ink-dim">{item}</div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 export default function ComparisonWorkspace() {
-  const [prompt, setPrompt] = useState(promptCatalog[0].id);
-  const [selectedModels, setSelectedModels] = useState(["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"]);
-  const [variables, setVariables] = useState({
-    accountId: "AC-2048",
-    segment: "Enterprise",
-    lastInteractionDate: "2026-06-19",
-    productUsageTrend: "Steady decline",
-  });
+  const [promptOptions, setPromptOptions] = useState([]);
+  const [prompt, setPrompt] = useState("");
+  const [selectedModels, setSelectedModels] = useState([
+  "gemini:3.6-flash",
+  "gemini:3.5-flash-lite",
+]);
+  
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
-    setIsLoading(true);
-    const timer = window.setTimeout(() => {
-      if (!active) return;
-      const nextResults = buildResults(selectedModels, prompt, variables);
-      setResults(nextResults);
+  const loadPrompts = async () => {
+    try {
+      const response = await api.get("/library/");
+      console.log(
+  response.data.map((item) => ({
+    id: item.id,
+    title: item.title,
+    content: item.content,
+  }))
+);
+      const uniquePrompts = [];
+const seenTitles = new Set();
+
+response.data.forEach((item) => {
+  if (!seenTitles.has(item.title)) {
+    seenTitles.add(item.title);
+
+    uniquePrompts.push({
+      id: item.id,
+      title: item.title,
+      description: item.content,
+    });
+  }
+});
+
+const prompts = uniquePrompts;
+
+      setPromptOptions(prompts);
+
+      if (prompts.length > 0) {
+        setPrompt(prompts[0].id);
+      }
+    } catch (error) {
+      console.error("Failed to load prompts:", error);
+    } finally {
       setIsLoading(false);
-    }, 900);
+      setResults([]);
+    }
+  };
 
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [prompt, selectedModels, variables]);
+  loadPrompts();
+}, []);
 
-  const currentPrompt = useMemo(() => promptCatalog.find((item) => item.id === prompt) || promptCatalog[0], [prompt]);
+  const currentPrompt = useMemo(
+  () => promptOptions.find((item) => item.id === prompt) || promptOptions[0] || { description: "" },
+  [prompt, promptOptions]
+);
 
   const toggleModel = (modelId) => {
     setSelectedModels((current) => (current.includes(modelId) ? current.filter((item) => item !== modelId) : [...current, modelId]));
   };
 
-  const handleVariableChange = (key, value) => {
-    setVariables((current) => ({ ...current, [key]: value }));
-  };
+  
 
-  const handleRunComparison = () => {
+  const handleRunComparison = async () => {
+  if (selectedModels.length < 2) {
+    alert("Please select at least two models.");
+    return;
+  }
+
+  try {
     setIsLoading(true);
-    window.setTimeout(() => {
-      setResults(buildResults(selectedModels, prompt, variables));
-      setIsLoading(false);
-    }, 700);
-  };
+
+    const response = await api.post("/comparison/side-by-side", {
+      prompt_id: prompt,
+      prompt_text: currentPrompt.description,
+      models: selectedModels,
+    });
+
+    setResults(response.data.results);
+  } catch (error) {
+    console.error("Comparison failed:", error);
+    alert("Comparison failed.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleClearResults = () => {
     setSelectedModels([]);
@@ -418,59 +367,34 @@ export default function ComparisonWorkspace() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${result.name.toLowerCase().replace(/\s+/g, "-")}-response.md`;
+    link.download = `${result.model.toLowerCase().replace(/\s+/g, "-")}-response.md`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-2 sm:px-6 lg:px-8">
-      <StickyHeader title="Multi model comparison" description={`${currentPrompt.description} Choose the models that matter most for your task and review the outcomes side by side.`} onCompare={handleRunComparison} onClear={handleClearResults} hasResults={results.length > 0} />
+     <StickyHeader
+title="Multi-Model Comparison"
+description="Compare responses from multiple AI models using your saved prompts."
+onCompare={handleRunComparison}
+onClear={handleClearResults}
+hasResults={results.length > 0}
+/>
       <div className="flex flex-col gap-4">
-        <ComparisonConfigCard prompt={prompt} setPrompt={setPrompt} selectedModels={selectedModels} toggleModel={toggleModel} variables={variables} setVariable={handleVariableChange} onRun={handleRunComparison} promptOptions={promptCatalog} />
-        <ComparisonSummary results={results} />
+        <ComparisonConfigCard
+  prompt={prompt}
+  setPrompt={setPrompt}
+  selectedModels={selectedModels}
+  toggleModel={toggleModel}
+  onRun={handleRunComparison}
+  promptOptions={promptOptions}
+/>
+        
         {isLoading ? <LoadingState /> : results.length ? <ComparisonResults results={results} onCopy={handleCopy} onDownload={handleDownload} /> : <EmptyState onRun={handleRunComparison} />}
       </div>
-      {results.length > 0 && <ComparisonInsights results={results} />}
+      
     </div>
   );
 }
 
-function buildResults(selectedModels, prompt, variables) {
-  const promptDescription = promptCatalog.find((item) => item.id === prompt)?.title || "Prompt";
-
-  return selectedModels
-    .map((modelId) => {
-      const model = modelCatalog.find((item) => item.id === modelId);
-      if (!model) return null;
-
-      const outputLength = model.output.length;
-      const responseTime = model.responseTime ?? model.latency;
-      const qualityScore = model.qualityScore ?? model.quality;
-      const inputTokens = model.inputTokens ?? Math.round((model.totalTokens ?? model.tokens) * 0.7);
-      const outputTokens = model.outputTokens ?? Math.round((model.totalTokens ?? model.tokens) * 0.3);
-      const totalTokens = model.totalTokens ?? model.tokens;
-      const weightedScore = Math.round(qualityScore * 0.7 + (100 - responseTime * 20) * 0.15 + (100 - totalTokens / 40) * 0.15);
-
-      return {
-        ...model,
-        id: model.id,
-        name: model.name,
-        provider: model.provider,
-        quality: qualityScore,
-        latency: responseTime,
-        tokens: totalTokens,
-        cost: 0,
-        inputTokens,
-        outputTokens,
-        totalTokens,
-        responseTime,
-        responseLength: outputLength,
-        qualityScore,
-        output: `${model.output}\n\nPrompt: ${promptDescription}\nVariables: ${Object.entries(variables).map(([key, value]) => `${key}=${value}`).join(", ")}`,
-        outputLength,
-        weightedScore,
-      };
-    })
-    .filter(Boolean);
-}
