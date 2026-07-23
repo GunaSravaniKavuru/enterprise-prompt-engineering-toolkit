@@ -11,15 +11,8 @@ export const api = axios.create({
 // Automatically handle trailing slashes and attach JWT token
 api.interceptors.request.use(
   (config) => {
-    // Exclude auth routes from automatic trailing slashes
-    const isAuthRoute = config.url?.includes("login") || config.url?.includes("token") || config.url?.includes("register");
-
-    if (config.url && !isAuthRoute && !config.url.includes("?") && !config.url.endsWith("/")) {
-      config.url += "/";
-    }
-
-    // Attach JWT token
     const token = localStorage.getItem("access_token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
