@@ -25,10 +25,10 @@ export default function PromptOptimizer() {
     setIsGenerating(true);
     setShowGeneratedState(false);
 
-    const response = await api.post("/optimizer", {
-      prompt_id: null,
-      original_content: originalPrompt.trim(),
-    });
+    const response = await api.post("/optimizer/", {
+  prompt_id: null,
+  original_content: originalPrompt.trim(),
+});
 
     setOptimizationResult(response.data);
     setOptimizedPrompt(response.data.optimized_content);
