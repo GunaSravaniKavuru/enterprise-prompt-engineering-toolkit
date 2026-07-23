@@ -148,3 +148,27 @@ def restore_version_as_current(
     db.refresh(restored_version)
 
     return restored_version
+@router.delete("/{version_id}")
+def delete_version(
+    version_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    version = (
+        db.query(PromptVersion)
+        .filter(PromptVersion.id == version_id)
+        .first()
+    )
+
+    if not version:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prompt version not found.",
+        )
+
+    db.delete(version)
+    db.commit()
+
+    return {
+        "message": "Version deleted successfully"
+    }

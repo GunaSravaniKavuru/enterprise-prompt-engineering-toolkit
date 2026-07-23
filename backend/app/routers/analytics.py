@@ -14,18 +14,37 @@ def get_dashboard_analytics(
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     try:
-        total_prompts = db.query(func.count(Prompt.id)).scalar() or 0
-        total_executions = db.query(func.count(PlaygroundRun.id)).scalar() or 0
+        total_prompts = (
+    db.query(func.count(Prompt.id))
+    .filter(Prompt.user_id == current_user.id)
+    .scalar()
+    or 0
+)
+        total_executions = (
+    db.query(func.count(PlaygroundRun.id))
+    .filter(PlaygroundRun.created_by == current_user.id)
+    .scalar()
+    or 0
+)
         
-        metrics_avg = db.query(
-            func.avg(PlaygroundRun.latency_ms).label("avg_latency"),
-            func.avg(PlaygroundRun.tokens).label("avg_tokens")
-        ).first()
+        metrics_avg = (
+    db.query(
+        func.avg(PlaygroundRun.latency_ms).label("avg_latency"),
+        func.avg(PlaygroundRun.tokens).label("avg_tokens")
+    )
+    .filter(PlaygroundRun.created_by == current_user.id)
+    .first()
+)
         
-        model_distribution = db.query(
-            PlaygroundRun.model_used, 
-            func.count(PlaygroundRun.id).label("count")
-        ).group_by(PlaygroundRun.model_used).all()
+        model_distribution = (
+    db.query(
+        PlaygroundRun.model_used,
+        func.count(PlaygroundRun.id).label("count")
+    )
+    .filter(PlaygroundRun.created_by == current_user.id)
+    .group_by(PlaygroundRun.model_used)
+    .all()
+)
         
         model_breakdown = {model: count for model, count in model_distribution if model}
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Evaluation
+from app.models import Evaluation, PromptVersion
 from app.schemas import EvaluationCreate, EvaluationResponse
 from app.services.evaluator_service import evaluate_prompt
 from app.services.gemini_service import GeminiServiceError
@@ -27,6 +27,16 @@ def evaluate(
         )
 
         db.add(evaluation)
+        latest_version = (
+            db.query(PromptVersion)
+            .filter(PromptVersion.prompt_id == request.prompt_id)
+            .order_by(PromptVersion.version_number.desc())
+            .first()
+        )
+
+        if latest_version:
+            latest_version.quality_score = result["overall_score"]
+            latest_version.evaluation_score = result["overall_score"]
         db.commit()
         db.refresh(evaluation)
 

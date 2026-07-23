@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-import time
+
 
 from app.database import get_db
-from app.models import ComparisonRun, Prompt, User
+from app.models import ComparisonRun, User
 from app.core.deps import get_current_user
 from app.services.gemini_service import ask_gemini
 
@@ -33,35 +33,36 @@ def run_side_by_side_comparison(
     comparison_results = []
     
     for model_name in request.models:
-        start_time = time.time()
+        print("\n========== PROMPT SENT TO GEMINI ==========")
+        print(request.prompt_text)
+        print("===========================================\n")
         try:
             raw_response = ask_gemini(
-                prompt=request.prompt_text,
-                model_name=model_name,
-                system_instruction=request.system_instruction,
-                temperature=request.temperature
-            )
-            elapsed_time_ms = int((time.time() - start_time) * 1000)
+    prompt_text=request.prompt_text,
+    model_id=model_name,
+)
+         
             
-            output_text = raw_response.get("text", "")
-            estimated_tokens = len(request.prompt_text.split()) + len(output_text.split())
-
+           
             comparison_results.append({
-                "model": model_name,
-                "output": output_text,
-                "latency_ms": elapsed_time_ms,
-                "tokens": estimated_tokens,
-                "status": "success"
-            })
+    "model": raw_response["model"],
+    "output": raw_response["text"],
+    "latency_ms": raw_response["response_time_ms"],
+    "input_tokens": raw_response["input_tokens"],
+    "output_tokens": raw_response["output_tokens"],
+    "total_tokens": raw_response["total_tokens"],
+    "status": "success",
+})
         except Exception as e:
-            elapsed_time_ms = int((time.time() - start_time) * 1000)
             comparison_results.append({
-                "model": model_name,
-                "output": f"Error: {str(e)}",
-                "latency_ms": elapsed_time_ms,
-                "tokens": 0,
-                "status": "error"
-            })
+        "model": model_name,
+        "output": f"Error: {str(e)}",
+        "latency_ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "status": "error"
+    })
 
     run_record = ComparisonRun(
         prompt_id=request.prompt_id,
