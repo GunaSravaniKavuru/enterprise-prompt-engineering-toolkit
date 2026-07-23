@@ -68,7 +68,7 @@ export default function PromptOptimizer() {
   if (!optimizedPrompt) return;
 
   try {
-    await api.post("/library", {
+   await api.post("/library/", {
       title: originalPrompt.slice(0, 50) || "Optimized Prompt",
       category: "Optimizer",
       tags: ["optimized"],

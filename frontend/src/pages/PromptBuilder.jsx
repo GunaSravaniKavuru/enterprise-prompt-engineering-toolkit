@@ -278,8 +278,7 @@ useEffect(() => {
 } else {
   console.log("Saving payload:", payload);
   console.log("Saving form_data:", payload.form_data);
-      await api.post("/library", payload);
-
+      await api.post("/library/", payload);
       showToast(`Prompt "${form.promptName}" saved successfully`);
     }
 

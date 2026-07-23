@@ -39,7 +39,7 @@ export default function PromptLibrary() {
 useEffect(() => {
   const loadPrompts = async () => {
     try {
-      const response = await api.get("/library");
+      const response = awaitapi.get("/library/");
       setPrompts(response.data);
     } catch (error) {
       console.error("Failed to load prompts:", error);

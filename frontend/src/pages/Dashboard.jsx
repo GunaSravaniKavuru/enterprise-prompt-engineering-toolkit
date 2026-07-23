@@ -60,7 +60,7 @@ export default function Dashboard() {
 
   const loadDashboard = async () => {
     try {
-      const promptRes = await api.get("/library");
+      const promptRes = await api.get("/library/");
 
       const prompts = promptRes.data;
 

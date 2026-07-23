@@ -394,7 +394,7 @@ useEffect(() => {
 */
   const loadPrompts = async () => {
     try {
-      const response = await api.get("/library");
+      const response = await api.get("/library/");
       setPrompts(response.data);
       console.log("Library:", JSON.stringify(response.data, null, 2));
     } catch (error) {
