@@ -33,7 +33,7 @@ const handleLogin = async (e) => {
     });
 
     navigate("/dashboard");
-  } } catch (error) {
+  } catch (error) {
   const detail = error.response?.data?.detail;
   
   if (typeof detail === "string") {
@@ -45,8 +45,7 @@ const handleLogin = async (e) => {
     alert(JSON.stringify(detail));
   } else {
     alert("Invalid email or password");
-  }
-}
+  }}
 };
   return (
     <div className="min-h-screen bg-[#0B1120] flex items-center justify-center px-6 py-10">
