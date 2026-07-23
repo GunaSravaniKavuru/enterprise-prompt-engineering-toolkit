@@ -15,14 +15,10 @@ const handleLogin = async (e) => {
   e.preventDefault();
 
   try {
-    const params = new URLSearchParams();
-    params.append("username", email);
-    params.append("password", password);
-
-    const response = await api.post("/auth/login", params, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+    // Send a standard JSON object to the backend
+    const response = await api.post("/auth/login", {
+      email,
+      password,
     });
 
     localStorage.setItem("access_token", response.data.access_token);
@@ -34,18 +30,18 @@ const handleLogin = async (e) => {
 
     navigate("/dashboard");
   } catch (error) {
-  const detail = error.response?.data?.detail;
-  
-  if (typeof detail === "string") {
-    alert(detail);
-  } else if (Array.isArray(detail)) {
-    // If FastAPI returns a validation array, show the first message
-    alert(detail[0]?.msg || "Invalid request parameters");
-  } else if (typeof detail === "object") {
-    alert(JSON.stringify(detail));
-  } else {
-    alert("Invalid email or password");
-  }}
+    const detail = error.response?.data?.detail;
+    
+    if (typeof detail === "string") {
+      alert(detail);
+    } else if (Array.isArray(detail)) {
+      alert(detail[0]?.msg || "Invalid request parameters");
+    } else if (typeof detail === "object") {
+      alert(JSON.stringify(detail));
+    } else {
+      alert("Invalid email or password");
+    }
+  }
 };
   return (
     <div className="min-h-screen bg-[#0B1120] flex items-center justify-center px-6 py-10">
