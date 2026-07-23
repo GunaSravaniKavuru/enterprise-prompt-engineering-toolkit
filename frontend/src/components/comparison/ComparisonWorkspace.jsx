@@ -101,7 +101,7 @@ function ComparisonConfigCard({
           <span className="mb-2 block font-medium text-ink">Prompt selector</span>
          <select
   value={prompt}
-  onChange={(event) => setPrompt(event.target.value)}
+  onChange={(event) => setPrompt(Number(event.target.value))}
   className="w-full rounded-lg border border-gray-600 bg-[#181a20] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
 >
             {promptOptions.map((item) => (
