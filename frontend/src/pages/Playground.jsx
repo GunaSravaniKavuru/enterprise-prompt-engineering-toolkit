@@ -5,7 +5,7 @@ import Button from "../components/common/Button";
 import Loader from "../components/common/Loader";
 import { Select, Textarea } from "../components/common/Input";
 import Badge from "../components/common/Badge";
-import { aiModels, promptLibrary, playgroundHistory, dummyOutput } from "../data/dummyData";
+import { aiModels, promptLibrary } from "../data/dummyData";
 
 export default function Playground() {
   const [selectedPrompt, setSelectedPrompt] = useState(promptLibrary[0].title);
@@ -162,37 +162,7 @@ const response = await api.post(
         </Card>
       </div>
 
-      <Card className="p-5">
-        <div className="mb-4">
-  <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-    🕒 Recent History
-  </h2>
-
-  <p className="mt-1 text-sm text-gray-400">
-    Previously executed prompts
-  </p>
-</div>
-        <div className="mt-4 space-y-3">
-          {playgroundHistory.map((h) => (
-            <div
-  key={h.id}
-  className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-4 transition-all duration-300 hover:border-emerald-500 hover:bg-slate-800/80"
->
-              <div>
-               <p className="font-semibold text-white">
-  {h.prompt}
-</p>
-                <p className="mt-1 text-xs text-emerald-400">
-  🤖 {h.model}
-</p>
-              </div>
-              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-gray-300">
-  {h.time}
-</span>
-            </div>
-          ))}
-        </div>
-      </Card>
+      
     </div>
   );
 }
