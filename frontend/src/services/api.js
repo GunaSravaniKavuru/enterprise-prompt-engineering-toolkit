@@ -8,15 +8,17 @@ export const api = axios.create({
   },
 });
 
-// Automatically ensure endpoints end with a trailing slash to avoid 307/308 redirects
+// Automatically handle trailing slashes and attach JWT token
 api.interceptors.request.use(
   (config) => {
-    // Append a trailing slash to URL if it doesn't already have one (and ignores query params)
-    if (config.url && !config.url.includes("?") && !config.url.endsWith("/")) {
+    // Exclude auth routes from automatic trailing slashes
+    const isAuthRoute = config.url?.includes("login") || config.url?.includes("token") || config.url?.includes("register");
+
+    if (config.url && !isAuthRoute && !config.url.includes("?") && !config.url.endsWith("/")) {
       config.url += "/";
     }
 
-    // Automatically attach JWT token to every request
+    // Attach JWT token
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

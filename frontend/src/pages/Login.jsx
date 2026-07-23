@@ -10,21 +10,27 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+// NEW (Paste this)
 const handleLogin = async (e) => {
   e.preventDefault();
 
   try {
-    const response = await api.post("/auth/login", {
-      email,
-      password,
+    const params = new URLSearchParams();
+    params.append("username", email);
+    params.append("password", password);
+
+    const response = await api.post("/auth/login", params, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     });
 
     localStorage.setItem("access_token", response.data.access_token);
 
     login({
-  name: email,
-  email,
-});
+      name: email,
+      email,
+    });
 
     navigate("/dashboard");
   } catch (error) {
