@@ -10,7 +10,7 @@ An AI-powered web application for designing, managing, evaluating, optimizing, a
 
 | Service | URL |
 |---------|-----|
-| Frontend (Vercel) | enterprise-prompt-engineering-toolkit-gt9shtdbw-collegeproject.vercel.app |
+| Frontend (Vercel) | https://enterprise-prompt-engineering-toolkit-he7s3qa5h-collegeproject.vercel.app |
 | Backend API (Railway) | https://enterprise-prompt-engineering-toolkit-production.up.railway.app |
 | API Documentation | https://enterprise-prompt-engineering-toolkit-production.up.railway.app/docs |
 
