@@ -16,6 +16,24 @@ An AI-powered web application for designing, managing, evaluating, optimizing, a
 
 ---
 
+# Enterprise Prompt Engineering Toolkit
+
+**Onboard Academy Capstone Project**
+
+**Team 3**
+
+### Team Members
+
+- K. Guna Sravani
+- M. Archana
+- V. Anjana
+- G. Tejaswini
+- S. Sri Lakshmi
+
+An AI-powered web application for designing, managing, evaluating, optimizing, and comparing prompts for Large Language Models (LLMs). The toolkit provides a centralized platform for prompt engineering workflows with prompt versioning, analytics, and multi-model comparison.
+
+---
+
 ## Features
 
 - User Authentication (Register/Login)
