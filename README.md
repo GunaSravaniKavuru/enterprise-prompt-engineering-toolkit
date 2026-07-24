@@ -211,6 +211,14 @@ Additional documentation is available in the following folders:
 
 ---
 
+## Notes
+
+- This project uses the Google Gemini API for AI-powered features.
+- AI functionality depends on the availability of the configured Gemini API key and its usage quota.
+- If the API quota is exhausted, AI-powered modules (such as Prompt Builder, Optimizer, Evaluator, Playground, and Model Comparison) may temporarily return an error until the quota resets or a valid API key with available quota is configured.
+
+---
+
 ## License
 
 This project was developed for educational purposes as part of the Enterprise Prompt Engineering Toolkit project.
